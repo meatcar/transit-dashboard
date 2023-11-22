@@ -1,0 +1,13 @@
+{
+  "tasks": {
+    "dev": "deno run --watch --allow-all src/server/main.ts"
+  },
+  "imports": {
+    "sqlite3": "https://deno.land/x/sqlite3@0.9.1/mod.ts"
+  },
+  "compilerOptions": {
+    "lib": [
+      "deno.worker"
+    ]
+  }
+}
