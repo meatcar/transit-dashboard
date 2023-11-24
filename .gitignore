@@ -3,13 +3,20 @@
 
 ### Deno ###
 /.idea/
-/.vscode/
 
 /node_modules
 
-.env
 *.orig
 *.pyc
 *.swp
-
 # End of https://www.toptal.com/developers/gitignore/api/deno
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Fresh build directory
+_fresh/
