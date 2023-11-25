@@ -1,4 +1,5 @@
 import { AppProps } from "$fresh/server.ts";
+import { Badge } from "../components/Badge.tsx";
 
 export default function App({ Component }: AppProps) {
   return (
@@ -10,7 +11,25 @@ export default function App({ Component }: AppProps) {
         <link rel="stylesheet" href="/styles.css" />
       </head>
       <body>
+        <header>
+          <nav>
+            <ul>
+              <li>
+                <a href="/" class="logo">🚌</a>
+              </li>
+              <li>
+                <a href="/">Home</a>
+              </li>
+              <li>
+                <a href="/dashboard">Dashboard</a>
+              </li>
+            </ul>
+          </nav>
+        </header>
         <Component />
+        <footer>
+          <Badge />
+        </footer>
       </body>
     </html>
   );
