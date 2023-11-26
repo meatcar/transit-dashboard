@@ -16,7 +16,7 @@ class APIError extends Error {
   }
 }
 
-export async function nearby_stops(
+export async function nearbyStops(
   lat: string,
   lon: string,
   max_distance = 150,
@@ -47,7 +47,7 @@ interface Stop {
   wheelchair_boarding: 0 | 1 | 2;
 }
 
-export async function stop_departures(
+export async function stopDepartures(
   global_stop_id: GlobalStopId,
 ): Promise<any> {
   const url = api_url("/public/stop_departures");
