@@ -8,12 +8,19 @@ export default async function Dashboard(req: Request) {
   const url = new URL(req.url);
   const lat = url.searchParams.get("lat") || "";
   const lon = url.searchParams.get("lon") || "";
-  const max_distance = url.searchParams.get("max_distance") || "";
   if (!lat || !lon) return <Locator />;
 
+  let max_distance;
+  if (url.searchParams.has("max_distance")) {
+    max_distance = Number.parseInt(
+      url.searchParams.get("max_distance") ?? "",
+      10,
+    );
+  }
   const { stops } = await API.nearbyStops(
     lat,
     lon,
+    max_distance,
   );
   return (
     <div>
@@ -22,6 +29,8 @@ export default async function Dashboard(req: Request) {
       <ul>
         {stops.map((stop) => (
           <li className="stop">
+            <input type="checkbox" name={stop.global_stop_id} value="true" />
+            {" "}
             {stop.stop_name} <small>{stop.global_stop_id}</small>
           </li>
         ))}
