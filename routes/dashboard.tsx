@@ -3,6 +3,7 @@ import { Handlers, PageProps } from "$fresh/server.ts";
 import { Badge } from "../components/Badge.tsx";
 import Locator from "../islands/Locator.tsx";
 import * as API from "../transit-api-client/api.ts";
+import { nearbyStops } from "../transit-api-client/nearbyStops.ts";
 
 export default async function Dashboard(req: Request) {
   const url = new URL(req.url);
@@ -17,13 +18,13 @@ export default async function Dashboard(req: Request) {
       10,
     );
   }
-  const { stops } = await API.nearbyStops(
+  const { stops } = await nearbyStops(
     lat,
     lon,
     max_distance,
   );
   return (
-    <div>
+    <div className="dashboard">
       <h1>Dashboard</h1>
       <h2>Nearby Stops</h2>
       <ul>
