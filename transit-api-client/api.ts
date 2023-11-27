@@ -1,13 +1,28 @@
-import { proxyFetch } from "./proxy.ts";
+import { cacheFetch } from "./cache.ts";
+import * as DateFns from "date-fns";
 
 function api_url(url: string): URL {
-  return new URL(`https://external.transitapp.com/v3/${url}`);
+  const trimmed = url.replace(/^\//, "");
+  return new URL(`https://external.transitapp.com/v3/${trimmed}`);
 }
 
-function api_fetch(url: URL, req: RequestInit = {}): Promise<Response> {
+async function api_fetch(
+  url: URL,
+  req: RequestInit = {},
+  cacheTime = 0,
+  backoff = 1000, // 1 second
+): Promise<Response> {
   const headers = new Headers(req.headers);
   headers.append("apiKey", Deno.env.get("TRANSIT_API_KEY") ?? "");
-  return fetch(url, { ...req, headers });
+
+  const res = await cacheFetch(url, { ...req, headers }, cacheTime);
+
+  if (res.status !== 529) {
+    return res;
+  }
+  // exponential backoff
+  await new Promise((resolve) => setTimeout(resolve, backoff));
+  return api_fetch(url, req, cacheTime, backoff * 2);
 }
 
 class APIError extends Error {
@@ -16,6 +31,7 @@ class APIError extends Error {
   }
 }
 
+export const nearbyStopsCacheTime = DateFns.hoursToSeconds(24);
 export async function nearbyStops(
   lat: string,
   lon: string,
@@ -27,7 +43,7 @@ export async function nearbyStops(
   if (max_distance != 150) {
     url.searchParams.set("max_distance", max_distance.toString());
   }
-  const res = await api_fetch(url);
+  const res = await api_fetch(url, {}, nearbyStopsCacheTime);
   if (res.status !== 200) throw new APIError(res);
   return await res.json();
 }
@@ -49,11 +65,11 @@ interface Stop {
 
 export async function stopDepartures(
   global_stop_id: GlobalStopId,
-): Promise<any> {
+): Promise<unknown> {
   const url = api_url("/public/stop_departures");
   url.searchParams.set("global_stop_id", global_stop_id);
   url.searchParams.set("time", `${Date.now().valueOf() / 1000}`);
-  const res = await api_fetch(url);
+  const res = await api_fetch(url, {});
   if (res.status !== 200) throw new APIError(res);
   return res.json();
 }
