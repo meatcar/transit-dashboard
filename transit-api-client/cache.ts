@@ -23,12 +23,13 @@ db.exec(
   )`,
 );
 
-const getCache = db.prepare(
+const getCacheQuery = db.prepare(
   "SELECT * FROM fetches WHERE url = ? and expiry > unixepoch('now')",
 );
-const setCache = db.prepare(
+const setCacheQuery = db.prepare(
   "INSERT OR REPLACE INTO fetches(url, response, expiry) VALUES (?, ?, ?)",
 );
+const clearCacheQuery = db.prepare("DELETE FROM fetches");
 
 export class ProxyError extends Error {
   constructor(res: Response) {
@@ -50,25 +51,24 @@ export async function cacheFetch(
   cacheTime: number,
 ): Promise<Response> {
   const urlStr = url.toString();
-  const cache = getCache.value<CacheRow>(urlStr);
+  const cache = getCacheQuery.value<CacheRow>(urlStr);
   console.debug(`cache ${cache ? "HIT" : "MISS"} (${urlStr})`);
 
   let res: Response;
   if (cache) {
     const [_url, response, _expiry] = cache;
     res = new Response(response, { status: 200 });
-    return res;
   }
 
   res = await fetch(url, req);
   if (res.status === 200) {
     const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;
-    setCache.run(
-      urlStr,
-      await res.clone().text(),
-      expiry,
-    );
+    setCacheQuery.run(urlStr, await res.clone().text(), expiry);
   }
 
   return res;
+}
+
+export function cacheClear(): void {
+  clearCacheQuery.run();
 }
