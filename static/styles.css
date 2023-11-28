@@ -106,3 +106,31 @@ nav .logo {
   font-size: 1.5rem;
   text-decoration: none !important;
 }
+
+.stops ul,
+.routes ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.routes li {
+  margin-bottom: 1rem;
+}
+
+.routes .network {
+  float: right;
+}
+
+.routes input {
+  float: right;
+}
+
+.routes .schedule {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.routes .schedule>* {
+  display: block;
+}

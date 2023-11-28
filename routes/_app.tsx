@@ -3,7 +3,7 @@ import { Badge } from "../components/Badge.tsx";
 
 export default function App({ Component }: AppProps) {
   return (
-    <html>
+    <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,7 +21,10 @@ export default function App({ Component }: AppProps) {
                 <a href="/">Home</a>
               </li>
               <li>
-                <a href="/dashboard">Dashboard</a>
+                <a href="/stops">Stops</a>
+              </li>
+              <li>
+                <a href="/routes">Routes</a>
               </li>
             </ul>
           </nav>

@@ -22,10 +22,10 @@ export async function fetchAPI(
 
   const res = await cacheFetch(url, { ...req, headers }, cacheTime);
 
-  if (res.status !== 529) {
-    return res;
+  if (res.status === 429) {
+    // exponential backoff
+    await new Promise((resolve) => setTimeout(resolve, backoff));
+    return fetchAPI(cacheTime, path, searchParams, req, backoff * 2);
   }
-  // exponential backoff
-  await new Promise((resolve) => setTimeout(resolve, backoff));
-  return fetchAPI(cacheTime, path, searchParams, req, backoff * 2);
+  return res;
 }

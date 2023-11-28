@@ -6,10 +6,10 @@ import { Route } from "./schema/models/Route.ts";
 export const CACHE_TIME = DateFns.minutesToSeconds(5);
 export async function stopDepartures(
   global_stop_id: GlobalStopId,
-): Promise<Route[]> {
+): Promise<{ route_departures: Route[] }> {
   const params = new URLSearchParams();
   params.set("global_stop_id", global_stop_id);
-  params.set("time", `${DateFns.getUnixTime(Date.now())}`);
+  // params.set("time", `${DateFns.getUnixTime(Date.now())}`);
   const res = await fetchAPI(
     CACHE_TIME,
     "/public/stop_departures",

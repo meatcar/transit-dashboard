@@ -4,15 +4,11 @@
     "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
     "start": "deno run --unstable -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
-    "preview": "deno run -A main.ts",
+    "preview": "deno run -A --unstable main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update .",
     "gen-schema": "deno run -A -r npm:openapi-typescript-codegen --input ./transit-api-client/openapi-schema-v3.0.0.json --output ./transit-api-client/schema/"
   },
-  "lint": {
-    "rules": {
-      "tags": ["fresh", "recommended"]
-    }
-  },
+  "lint": { "rules": { "tags": ["fresh", "recommended"] } },
   "exclude": ["**/_fresh/*"],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.5.4/",
@@ -25,8 +21,5 @@
     "sqlite3": "https://deno.land/x/sqlite3@0.9.1/mod.ts",
     "date-fns": "npm:date-fns"
   },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
-  }
+  "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" }
 }
