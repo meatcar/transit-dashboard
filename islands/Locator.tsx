@@ -1,8 +1,12 @@
-import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
+import { type Signal, useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
-export default function Locator() {
+interface Props {
+  action: string;
+}
+
+export default function Locator({ action }: Props) {
   const loading: Signal<boolean> = useSignal(false);
   const lat: Signal<string> = useSignal("");
   const lon: Signal<string> = useSignal("");
@@ -31,22 +35,19 @@ export default function Locator() {
   }
 
   return (
-    <form action="/dashboard" method="GET">
+    <form action={action} method="GET">
       <div>
-        <h2>Location</h2>
-        <div>
-          <label htmlFor="lat">Latitude:</label>
-          <br />
-          <input type="text" name="lat" value={lat} />
-        </div>
-        <div>
-          <label htmlFor="lon">Longitude:</label>
-          <br />
-          <input type="text" name="lon" value={lon} />
-        </div>
+        <label htmlFor="lat">Latitude:</label>
+        <br />
+        <input type="text" name="lat" value={lat} />
+      </div>
+      <div>
+        <label htmlFor="lon">Longitude:</label>
+        <br />
+        <input type="text" name="lon" value={lon} />
       </div>
       <Button type="submit" onClick={submit} disabled={loading}>
-        Open Dashboard
+        Search
       </Button>
       <div>
         {loading.value && <span>Getting location, please wait.</span>}
