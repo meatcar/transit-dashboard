@@ -15,6 +15,7 @@ export default async function Stops(req: Request) {
       10,
     );
   }
+  const selectedStops = url.searchParams.getAll("stops") || [];
   const { stops } = await nearbyStops(
     lat,
     lon,
@@ -33,18 +34,20 @@ export default async function Stops(req: Request) {
           value={max_distance || 150}
         />
         <button type="submit">Refresh</button>
-      </form>
-      <form action="/routes">
+        <button type="submit" formaction="/routes">Find Routes</button>
         <ul>
           {stops.map((stop) => (
             <li className="stop">
-              <input type="checkbox" name="stops" value={stop.global_stop_id} />
-              {" "}
+              <input
+                type="checkbox"
+                name="stops"
+                value={stop.global_stop_id}
+                checked={selectedStops.includes(stop.global_stop_id)}
+              />{" "}
               {stop.stop_name} <small>{stop.global_stop_id}</small>
             </li>
           ))}
         </ul>
-        <button type="submit">Find Routes</button>
       </form>
     </div>
   );
