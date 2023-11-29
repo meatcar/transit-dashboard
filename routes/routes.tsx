@@ -97,7 +97,7 @@ export default async function Routes(req: Request) {
             )
           ))}
         </ul>
-        <button type="submit">Hide Checked</button>
+        <button type="submit">Hide Checked Routes</button>
       </form>
       <form>
         {stops.map((id) => <input type="hidden" name="stops" value={id} />)}
