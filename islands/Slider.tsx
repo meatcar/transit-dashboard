@@ -1,11 +1,11 @@
 import { JSX } from "preact";
-import { type Signal, useSignal } from "@preact/signals";
+import { signal } from "@preact/signals";
 
 export default function Slider(props: JSX.HTMLAttributes<HTMLInputElement>) {
-  const v: Signal<number> = useSignal(props.value ?? 0);
+  const v = signal(props.value as number);
   return (
     <>
-      <label for={props.name}>{props.name} {v.value}</label>
+      <label for={props.name}>{props.name} {v}</label>
       <br />
       <input
         type="range"
