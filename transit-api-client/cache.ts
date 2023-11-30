@@ -58,12 +58,12 @@ export async function cacheFetch(
   if (cache) {
     const [_url, response, _expiry] = cache;
     res = new Response(response, { status: 200 });
-  }
-
-  res = await fetch(url, req);
-  if (res.status === 200) {
-    const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;
-    setCacheQuery.run(urlStr, await res.clone().text(), expiry);
+  } else {
+    res = await fetch(url, req);
+    if (res.status === 200) {
+      const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;
+      setCacheQuery.run(urlStr, await res.clone().text(), expiry);
+    }
   }
 
   return res;
