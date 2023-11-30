@@ -1,6 +1,7 @@
 import { Head, IS_BROWSER } from "$fresh/runtime.ts";
-import { type Signal, useSignal } from "@preact/signals";
+import { type Signal, signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
+import { JSX } from "preact/jsx-runtime";
 
 const GMAPS_API_KEY = IS_BROWSER ? "" : Deno.env.get("GMAPS_API_KEY");
 
@@ -10,18 +11,18 @@ interface Props {
 
 declare global {
   interface Window {
-    initMap: () => void;
+    initMap: () => void; // google API callback
     // deno-lint-ignore no-explicit-any
     google: any; // google API object
   }
 }
 
 export default function Locator({ action }: Props) {
-  const loading: Signal<boolean> = useSignal(false);
-  const lat: Signal<string> = useSignal("");
-  const lon: Signal<string> = useSignal("");
+  const loading = signal(false);
+  const lat = signal("");
+  const lon = signal("");
 
-  function getCurrentPosition(): Promise<GeolocationPosition> {
+  function asyncGetCurrentPosition(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject);
     });
@@ -29,7 +30,7 @@ export default function Locator({ action }: Props) {
 
   async function getLocation(e: Event) {
     loading.value = true;
-    const position = await getCurrentPosition();
+    const position = await asyncGetCurrentPosition();
     lat.value = position.coords.latitude.toString();
     lon.value = position.coords.longitude.toString();
     loading.value = false;
@@ -64,6 +65,10 @@ export default function Locator({ action }: Props) {
     };
   }
 
+  function onInput(s: Signal): JSX.GenericEventHandler<HTMLInputElement> {
+    return (e) => s.value = e.currentTarget.value;
+  }
+
   return (
     <form action={action} method="GET">
       {!IS_BROWSER && (
@@ -83,22 +88,12 @@ export default function Locator({ action }: Props) {
       <div>
         <label htmlFor="lat">Latitude:</label>
         <br />
-        <input
-          type="text"
-          name="lat"
-          value={lat}
-          onChange={(e) => lat.value = e.currentTarget.value}
-        />
+        <input type="text" name="lat" value={lat} onInput={onInput(lat)} />
       </div>
       <div>
         <label htmlFor="lon">Longitude:</label>
         <br />
-        <input
-          type="text"
-          name="lon"
-          value={lon}
-          onChange={(e) => lon.value = e.currentTarget.value}
-        />
+        <input type="text" name="lon" value={lon} onInput={onInput(lon)} />
       </div>
       <Button type="submit" onClick={submit} disabled={loading}>
         Search
