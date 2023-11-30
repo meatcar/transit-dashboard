@@ -1,12 +1,12 @@
-import { type Signal, signal, useSignalEffect } from "@preact/signals";
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
 import { getHours, getMilliseconds, getMinutes, getSeconds } from "date-fns";
 import { IS_BROWSER } from "$fresh/runtime.ts";
 
 export default function Clock() {
   const now = Date.now();
 
-  const h = signal(0);
-  const m = signal(0);
+  const h = useSignal(0);
+  const m = useSignal(0);
 
   const tick = () => {
     h.value = getHours(Date.now());

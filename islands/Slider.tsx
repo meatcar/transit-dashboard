@@ -1,8 +1,8 @@
 import { JSX } from "preact";
-import { signal } from "@preact/signals";
+import { useSignal } from "@preact/signals";
 
 export default function Slider(props: JSX.HTMLAttributes<HTMLInputElement>) {
-  const v = signal(props.value as number);
+  const v = useSignal(props.value as number);
   return (
     <>
       <label for={props.name}>{props.name} {v}</label>

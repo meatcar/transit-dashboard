@@ -1,5 +1,5 @@
 import { Head, IS_BROWSER } from "$fresh/runtime.ts";
-import { type Signal, signal, useSignalEffect } from "@preact/signals";
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { JSX } from "preact/jsx-runtime";
 import { useRef } from "preact/hooks";
@@ -20,9 +20,9 @@ declare global {
 }
 
 export default function Locator({ action }: Props) {
-  const loading = signal(false);
-  const lat = signal("");
-  const lon = signal("");
+  const loading = useSignal(false);
+  const lat = useSignal("");
+  const lon = useSignal("");
   const addressRef = useRef<HTMLInputElement>(null);
 
   // deno-lint-ignore no-explicit-any
@@ -57,6 +57,7 @@ export default function Locator({ action }: Props) {
   async function getLocation() {
     loading.value = true;
     const position = await asyncGetCurrentPosition();
+    console.log(position.coords);
     lat.value = position.coords.latitude.toString();
     lon.value = position.coords.longitude.toString();
     loading.value = false;
@@ -67,6 +68,7 @@ export default function Locator({ action }: Props) {
     if (lat.value == "" || lon.value == "") {
       await getLocation();
     }
+    console.log(lat.value, lon.value);
     (e.target as HTMLFormElement).form.submit();
   }
 
