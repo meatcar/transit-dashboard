@@ -12,6 +12,11 @@ import Clock from "../islands/Clock.tsx";
 import { RouteLabel } from "../components/RouteLabel.tsx";
 import { Schedule } from "../components/Schedule.tsx";
 
+/* identify itineraries by route and direction. */
+function itineraryId(route: Route, itinerary: Itinerary): ItineraryId {
+  return `${route.global_route_id}|${itinerary.direction_id}`;
+}
+
 // input field names.
 const form = {
   stops: "stops",
@@ -22,10 +27,10 @@ const form = {
 // identify itineraries by route and direction.
 type ItineraryId = `${GlobalStopId}|${DirectionId}`;
 interface Data {
-  stops: GlobalStopId[];
-  routes: Route[];
-  hidden_itns: Set<ItineraryId>;
-  shouldHide: boolean;
+  stops: GlobalStopId[]; // stops to show
+  hidden_itns: Set<ItineraryId>; // itineraries to hide
+  routes: Route[]; // routes serving the stops fetched from the API
+  hideMode: boolean; // whether to show UI to hide itineraries
 }
 
 // TODO: hide/show checkboxes using interactive islands to save a reload.
@@ -34,7 +39,7 @@ export const handler: Handlers<Data> = {
     const url = new URL(req.url);
     const stops = url.searchParams.getAll(form.stops) || [];
     const itns = url.searchParams.getAll(form.hidden_its) || [];
-    const shouldHide = url.searchParams.get(form.hide_routes) === "true";
+    const hideMode = url.searchParams.get(form.hide_routes) === "true";
 
     const set = new Set<ItineraryId>();
     for (const id of itns) {
@@ -51,41 +56,9 @@ export const handler: Handlers<Data> = {
       }
     }
 
-    return ctx.render({ stops, routes, hidden_itns: set, shouldHide });
+    return ctx.render({ stops, routes, hidden_itns: set, hideMode });
   },
 };
-
-function itineraryId(route: Route, itinerary: Itinerary): ItineraryId {
-  return `${route.global_route_id}|${itinerary.direction_id}`;
-}
-
-interface ItineraryProps extends Data {
-  route: Route;
-  itinerary: Itinerary;
-  show: boolean;
-}
-function Itinerary({ route, itinerary, shouldHide, show }: ItineraryProps) {
-  const { schedule_items } = itinerary;
-  if (!show) return null;
-  return (
-    <li className="itinerary">
-      <hr style={`border-color: #${route.route_color};`} />
-      {shouldHide && (
-        <input
-          type="checkbox"
-          name={form.hidden_its}
-          value={itineraryId(route, itinerary)}
-        />
-      )}{" "}
-      <RouteLabel route={route} itinerary={itinerary} />
-      <div className="schedules">
-        {schedule_items.map((s) => (
-          <Schedule schedule={s} />
-        ))}
-      </div>
-    </li>
-  );
-}
 
 export default function Routes(props: PageProps<Data>) {
   const { stops, hidden_itns, routes } = props.data;
@@ -96,9 +69,7 @@ export default function Routes(props: PageProps<Data>) {
         Routes
         <Clock />
       </h1>
-      {stops.map((s) => (
-        <input type="hidden" name={form.stops} value={s} />
-      ))}
+      {stops.map((s) => <input type="hidden" name={form.stops} value={s} />)}
       <ul>
         {routes.map((route) =>
           route.itineraries?.map((itinerary: Itinerary) => (
@@ -117,7 +88,7 @@ export default function Routes(props: PageProps<Data>) {
 }
 
 function Buttons({ data, url }: PageProps<Data>) {
-  const { hidden_itns, shouldHide } = data;
+  const { hidden_itns, hideMode } = data;
   const urlWithoutHidden = new URL(url);
   urlWithoutHidden.searchParams.delete(form.hidden_its);
 
@@ -131,9 +102,9 @@ function Buttons({ data, url }: PageProps<Data>) {
   return (
     <div class="buttons">
       <hr />
-      {shouldHide && hiddenInputs}
-      {shouldHide && <button type="submit">Hide Checked Routes</button>}
-      {!shouldHide && (
+      {hideMode && hiddenInputs}
+      {hideMode && <button type="submit">Hide Checked Routes</button>}
+      {!hideMode && (
         <a href={urlWithHideOn.toString()} className="button">
           Hide Routes
         </a>
@@ -144,5 +115,30 @@ function Buttons({ data, url }: PageProps<Data>) {
         </a>
       )}
     </div>
+  );
+}
+
+interface ItineraryProps extends Data {
+  route: Route;
+  itinerary: Itinerary;
+  show: boolean;
+}
+function Itinerary({ route, itinerary, hideMode, show }: ItineraryProps) {
+  const { schedule_items } = itinerary;
+  if (!show) return null;
+  return (
+    <li className="itinerary">
+      <hr style={`border-color: #${route.route_color};`} />
+      {hideMode && (
+        <input
+          type="checkbox"
+          name={form.hidden_its}
+          value={itineraryId(route, itinerary)}
+        />
+      )} <RouteLabel route={route} itinerary={itinerary} />
+      <div className="schedules">
+        {schedule_items.map((s) => <Schedule schedule={s} />)}
+      </div>
+    </li>
   );
 }
