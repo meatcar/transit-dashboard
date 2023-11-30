@@ -23,12 +23,12 @@ export function RouteLabel({ route, itinerary }: RouteLabelProps) {
     route;
   const { merged_headsign } = itinerary;
   return (
-    <div className="label">
+    <span className="label">
       <strong>{route_short_name}</strong> {route_long_name} {merged_headsign}
       <span className="network">
         {routeType(mode_name)}
         {route_network_name}
       </span>
-    </div>
+    </span>
   );
 }
