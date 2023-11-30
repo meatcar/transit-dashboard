@@ -1,34 +1,43 @@
-import { type Signal, useSignal } from "@preact/signals";
+import { type Signal, signal, useSignalEffect } from "@preact/signals";
 import { getHours, getMilliseconds, getMinutes, getSeconds } from "date-fns";
+import { IS_BROWSER } from "$fresh/runtime.ts";
+
 export default function Clock() {
   const now = Date.now();
 
-  const h: Signal<number> = useSignal(getHours(now));
-  const m: Signal<number> = useSignal(getMinutes(now));
+  const h = signal(0);
+  const m = signal(0);
 
-  const nextMinute = (1000 - getMilliseconds(now)) +
-    (60 - getSeconds(now)) * 1000;
+  const tick = () => {
+    h.value = getHours(Date.now());
+    m.value = getMinutes(Date.now());
+  };
 
-  setTimeout(() => {
-    setInterval(() => {
-      h.value = getHours(Date.now());
-      m.value = getMinutes(Date.now());
-    }, 60 * 1000);
-  }, nextMinute);
+  // next minute schedule update every minute.
+  if (IS_BROWSER) {
+    const oneMinute = 60 * 1000;
+    const nextMinute = oneMinute -
+      (getSeconds(now) * 1000 + getMilliseconds(now));
 
-  function prefixZero(n: number) {
+    useSignalEffect(() => {
+      let interval: number;
+      setTimeout(() => {
+        interval = setInterval(tick, oneMinute);
+      }, nextMinute);
+      return () => interval && clearInterval(interval);
+    });
+  }
+
+  function pad(n: number) {
     return n < 10 ? `0${n}` : n;
   }
 
+  tick();
   return (
     <span className="clock">
-      <span className="hours">
-        {prefixZero(h.value)}
-      </span>
+      <span className="hours">{pad(h.value)}</span>
       {":"}
-      <span className="minutes">
-        {prefixZero(m.value)}
-      </span>
+      <span className="minutes">{pad(m.value)}</span>
     </span>
   );
 }
