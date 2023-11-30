@@ -118,6 +118,10 @@ nav .logo {
   margin-bottom: 1rem;
 }
 
+.routes .clock {
+  float: right;
+}
+
 .routes .network {
   float: right;
 }
@@ -126,11 +130,24 @@ nav .logo {
   float: right;
 }
 
-.routes .schedule {
-  display: inline-block;
-  margin-right: 1rem;
+.schedules {
+  display: flex;
+  justify-content: center;
 }
 
-.routes .schedule>* {
+.schedule {
   display: block;
+  padding: 0.5rem;
+}
+
+.schedule .ts {
+  display: block;
+}
+
+.schedule .ts.live {
+  color: darkred;
+}
+
+.schedule .ts.live::before {
+  content: "";
 }

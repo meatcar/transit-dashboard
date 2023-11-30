@@ -1,61 +1,9 @@
-import * as DateFns from "date-fns";
 import { GlobalStopId } from "../transit-api-client/schema/models/GlobalStopId.ts";
 import { Itinerary } from "../transit-api-client/schema/models/Itinerary.ts";
-import { ScheduleItem } from "../transit-api-client/schema/models/ScheduleItem.ts";
 import { stopDepartures } from "../transit-api-client/stopDepartures.ts";
-import { Route } from "../transit-api-client/schema/models/Route.ts";
-
-function routeType(s?: string) {
-  switch (s) {
-    case "Bus":
-      return "🚌";
-    case "Subway":
-      return "🚇";
-    case "Commuter Rail":
-      return "🚂";
-    default:
-      return "🚀";
-  }
-}
-
-function timestamp(t: number) {
-  const date = DateFns.fromUnixTime(t);
-  return DateFns.format(date, "k:mm");
-}
-
-interface LabelProps {
-  route: Route;
-  itinerary: Itinerary;
-}
-function Label({ route, itinerary }: LabelProps) {
-  const { route_short_name, route_long_name, route_network_name, mode_name } =
-    route;
-  const { merged_headsign } = itinerary;
-  return (
-    <div className="label">
-      {route_short_name} {route_long_name} {merged_headsign}
-      <span className="network">
-        {routeType(mode_name)}
-        {route_network_name}
-      </span>
-    </div>
-  );
-}
-
-interface ScheduleProps {
-  schedule: ScheduleItem;
-}
-function Schedule({ schedule }: ScheduleProps) {
-  return (
-    <span className="schedule">
-      <i>{timestamp(schedule.scheduled_departure_time)}</i>
-      {schedule.is_real_time
-        ? <b>{timestamp(schedule.departure_time)}</b>
-        : <span>&nbsp;</span>}
-    </span>
-  );
-}
 import Clock from "../islands/Clock.tsx";
+import { RouteLabel } from "../components/RouteLabel.tsx";
+import { Schedule } from "../components/Schedule.tsx";
 
 export default async function Routes(req: Request) {
   const url = new URL(req.url);
@@ -88,8 +36,12 @@ export default async function Routes(req: Request) {
                     <hr
                       style={`border-color: #${rt.route_color};`}
                     />
-                    <Label route={rt} itinerary={it} />
-                    {it.schedule_items.map((s) => <Schedule schedule={s} />)}
+                    <RouteLabel route={rt} itinerary={it} />
+                    <div className="schedules">
+                      {it.schedule_items.map((
+                        s,
+                      ) => <Schedule schedule={s} />)}
+                    </div>
                     <input
                       type="checkbox"
                       name="hidden"
