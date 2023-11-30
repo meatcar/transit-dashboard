@@ -55,6 +55,7 @@ function Schedule({ schedule }: ScheduleProps) {
     </span>
   );
 }
+import Clock from "../islands/Clock.tsx";
 
 export default async function Routes(req: Request) {
   const url = new URL(req.url);
@@ -73,7 +74,10 @@ export default async function Routes(req: Request) {
       <form>
         {stops.map((id) => <input type="hidden" name="stops" value={id} />)}
         {hidden.map((id) => <input type="hidden" name="hidden" value={id} />)}
-        <h1>Routes</h1>
+        <h1>
+          Routes
+          <Clock />
+        </h1>
         <ul>
           {departures.map((routes) => (
             routes.map((rt) =>
