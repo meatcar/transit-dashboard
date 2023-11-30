@@ -1,9 +1,11 @@
 import { Head, IS_BROWSER } from "$fresh/runtime.ts";
-import { type Signal, signal } from "@preact/signals";
+import { type Signal, signal, useSignalEffect } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { JSX } from "preact/jsx-runtime";
+import { useRef } from "preact/hooks";
 
 const GMAPS_API_KEY = IS_BROWSER ? "" : Deno.env.get("GMAPS_API_KEY");
+window.initMap = () => {};
 
 interface Props {
   action: string;
@@ -21,6 +23,30 @@ export default function Locator({ action }: Props) {
   const loading = signal(false);
   const lat = signal("");
   const lon = signal("");
+  const addressRef = useRef<HTMLInputElement>(null);
+
+  // deno-lint-ignore no-explicit-any
+  let autocomplete: any;
+  useSignalEffect(() => {
+    const { Autocomplete } = window.google?.maps?.places || {};
+
+    autocomplete = new Autocomplete(
+      addressRef.current,
+      {
+        fields: ["address_components", "geometry", "name"],
+        types: ["address"],
+      },
+    );
+
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      lat.value = place.geometry?.location.lat();
+      lon.value = place.geometry?.location.lng();
+    });
+    return () => {
+      autocomplete.removeListener("place_changed");
+    };
+  });
 
   function asyncGetCurrentPosition(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
@@ -28,7 +54,7 @@ export default function Locator({ action }: Props) {
     });
   }
 
-  async function getLocation(e: Event) {
+  async function getLocation() {
     loading.value = true;
     const position = await asyncGetCurrentPosition();
     lat.value = position.coords.latitude.toString();
@@ -39,30 +65,9 @@ export default function Locator({ action }: Props) {
   async function submit(e: Event) {
     e.preventDefault();
     if (lat.value == "" || lon.value == "") {
-      await getLocation(e);
+      await getLocation();
     }
     (e.target as HTMLFormElement).form.submit();
-  }
-
-  if (IS_BROWSER) {
-    window.initMap = () => {
-      const { Autocomplete } = window.google?.maps?.places || {};
-
-      const autocomplete = new Autocomplete(
-        document.getElementsByName("address")[0],
-        {
-          fields: ["address_components", "geometry", "name"],
-          types: ["address"],
-        },
-      );
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        console.dir(place);
-        lat.value = place.geometry?.location.lat();
-        lon.value = place.geometry?.location.lng();
-      });
-    };
   }
 
   function onInput(s: Signal): JSX.GenericEventHandler<HTMLInputElement> {
@@ -71,19 +76,25 @@ export default function Locator({ action }: Props) {
 
   return (
     <form action={action} method="GET">
-      {!IS_BROWSER && (
-        <Head>
-          <script
-            async
-            defer
-            src={`https://maps.googleapis.com/maps/api/js?key=${GMAPS_API_KEY}&libraries=places&callback=initMap`}
-          />
-        </Head>
-      )}
+      <Head>
+        <script
+          key="gmaps"
+          defer
+          src={`https://maps.googleapis.com/maps/api/js?key=${GMAPS_API_KEY}&libraries=places&callback=initMap`}
+        />
+        <script>{"function initMap() { console.log('gmaps init'); }"}</script>
+      </Head>
       <div>
-        <label htmlFor="address">Address:</label>
+        <label htmlFor="address">
+          Address:
+        </label>
         <br />
-        <input type="text" name="address" />
+        <input
+          type="text"
+          name="address"
+          placeholder="Enter a location"
+          ref={addressRef}
+        />
       </div>
       <div>
         <label htmlFor="lat">Latitude:</label>
