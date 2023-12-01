@@ -11,6 +11,7 @@ import * as $5 from "./routes/stops.tsx";
 import * as $$0 from "./islands/Clock.tsx";
 import * as $$1 from "./islands/Locator.tsx";
 import * as $$2 from "./islands/Slider.tsx";
+import * as $$3 from "./islands/Toggle.tsx";
 
 const manifest = {
   routes: {
@@ -25,6 +26,7 @@ const manifest = {
     "./islands/Clock.tsx": $$0,
     "./islands/Locator.tsx": $$1,
     "./islands/Slider.tsx": $$2,
+    "./islands/Toggle.tsx": $$3,
   },
   baseUrl: import.meta.url,
 };

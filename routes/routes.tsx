@@ -1,67 +1,70 @@
-import { JSX } from "preact/jsx-runtime";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { defineRoute, Handlers, PageProps } from "$fresh/server.ts";
 
-import { GlobalStopId } from "../transit-api-client/schema/models/GlobalStopId.ts";
-import { Route } from "../transit-api-client/schema/models/Route.ts";
-import { Itinerary } from "../transit-api-client/schema/models/Itinerary.ts";
-import { DirectionId } from "../transit-api-client/schema/models/DirectionId.ts";
+import type { GlobalStopId } from "../transit-api-client/schema/models/GlobalStopId.ts";
+import type { Route } from "../transit-api-client/schema/models/Route.ts";
+import type { Itinerary } from "../transit-api-client/schema/models/Itinerary.ts";
 
 import { stopDepartures } from "../transit-api-client/stopDepartures.ts";
 
-import Clock from "../islands/Clock.tsx";
-import { RouteLabel } from "../components/RouteLabel.tsx";
+import { type Signal, useSignal } from "@preact/signals";
+import { FIELD_STOPS } from "../util/stops.ts";
+import {
+  FIELD_ITINERARY,
+  type HiddenItineraries,
+  type ItineraryId,
+  makeItineraryId,
+} from "../util/itineraries.ts";
+
 import { Schedule } from "../components/Schedule.tsx";
+import { RouteLabel } from "../components/RouteLabel.tsx";
 
-/* identify itineraries by route and direction. */
-function itineraryId(route: Route, itinerary: Itinerary): ItineraryId {
-  return `${route.global_route_id}|${itinerary.direction_id}`;
-}
-
-// input field names.
-const form = {
-  stops: "stops",
-  hidden_its: "h",
-  hide_routes: "hide",
-};
+import Clock from "../islands/Clock.tsx";
+import Toggle from "../islands/Toggle.tsx";
 
 // identify itineraries by route and direction.
-type ItineraryId = `${GlobalStopId}|${DirectionId}`;
 interface Data {
   stops: GlobalStopId[]; // stops to show
-  hidden_itns: Set<ItineraryId>; // itineraries to hide
   routes: Route[]; // routes serving the stops fetched from the API
-  hideMode: boolean; // whether to show UI to hide itineraries
+  hidden: HiddenItineraries; // itineraries to hide
 }
 
-// TODO: hide/show checkboxes using interactive islands to save a reload.
 export const handler: Handlers<Data> = {
   async GET(req, ctx) {
     const url = new URL(req.url);
-    const stops = url.searchParams.getAll(form.stops) || [];
-    const itns = url.searchParams.getAll(form.hidden_its) || [];
-    const hideMode = url.searchParams.get(form.hide_routes) === "true";
+    const stops = url.searchParams.getAll(FIELD_STOPS) || [];
+    const hidden_its = url.searchParams.getAll(FIELD_ITINERARY) || [];
 
-    const set = new Set<ItineraryId>();
-    for (const id of itns) {
-      set.add(id as ItineraryId);
+    if (stops.length == 0) {
+      const headers = new Headers();
+      headers.set("location", "/stops");
+      return new Response(null, {
+        status: 302,
+        headers,
+      });
+    }
+
+    const hidden: HiddenItineraries = {};
+    for (const id of hidden_its) {
+      hidden[id as ItineraryId] = true;
     }
 
     const routes = [];
     for (const id of stops) {
-      console.time(id);
       const { route_departures } = await stopDepartures(id as GlobalStopId);
-      console.timeEnd(id);
       for (const route of route_departures) {
         routes.push(route);
       }
     }
 
-    return ctx.render({ stops, routes, hidden_itns: set, hideMode });
+    return ctx.render({ stops, routes, hidden });
   },
 };
 
-export default function Routes(props: PageProps<Data>) {
-  const { stops, hidden_itns, routes } = props.data;
+export default function Routes(
+  { url, data: { stops, routes, hidden } }: PageProps<Data>,
+) {
+  const hideMode = useSignal(false);
+  console.log("hidden", Object.keys(hidden));
 
   return (
     <form className="routes">
@@ -69,76 +72,87 @@ export default function Routes(props: PageProps<Data>) {
         Routes
         <Clock />
       </h1>
-      {stops.map((s) => <input type="hidden" name={form.stops} value={s} />)}
+      {stops.map((s) => <input type="hidden" name={FIELD_STOPS} value={s} />)}
       <ul>
         {routes.map((route) =>
           route.itineraries?.map((itinerary: Itinerary) => (
-            <Itinerary
-              route={route}
-              itinerary={itinerary}
-              show={!hidden_itns.has(itineraryId(route, itinerary))}
-              {...props.data}
-            />
+            <ItineraryRow data={{ route, itinerary, hideMode, hidden }} />
           ))
         )}
       </ul>
-      <Buttons {...props} />
+      <ItineraryButtons data={{ url, hideMode, hidden }} />
     </form>
   );
 }
 
-function Buttons({ data, url }: PageProps<Data>) {
-  const { hidden_itns, hideMode } = data;
-  const urlWithoutHidden = new URL(url);
-  urlWithoutHidden.searchParams.delete(form.hidden_its);
-
-  const urlWithHideOn = new URL(url);
-  urlWithHideOn.searchParams.set(form.hide_routes, "true");
-
-  const hiddenInputs = [...hidden_itns].map((id) => (
-    <input type="hidden" name={form.hidden_its} value={id} />
-  ));
-
-  return (
-    <div class="buttons">
-      <hr />
-      {hideMode && hiddenInputs}
-      {hideMode && <button type="submit">Hide Checked Routes</button>}
-      {!hideMode && (
-        <a href={urlWithHideOn.toString()} className="button">
-          Hide Routes
-        </a>
-      )}
-      {hidden_itns.size > 0 && (
-        <a href={urlWithoutHidden.toString()} className="button">
-          Show {hidden_itns.size} hidden routes
-        </a>
-      )}
-    </div>
-  );
-}
-
-interface ItineraryProps extends Data {
+interface ItineraryProps {
   route: Route;
   itinerary: Itinerary;
-  show: boolean;
+  hidden: HiddenItineraries;
+  hideMode: Signal<boolean>;
 }
-function Itinerary({ route, itinerary, hideMode, show }: ItineraryProps) {
+function ItineraryRow({ data }: { data: ItineraryProps }) {
+  const { route, itinerary, hidden, hideMode } = data;
   const { schedule_items } = itinerary;
-  if (!show) return null;
+  const id = makeItineraryId(route, itinerary);
+
+  console.log("itinerary", {
+    id,
+    hideMode: hideMode.value,
+  });
+
+  if (hidden[id]) return null;
   return (
     <li className="itinerary">
       <hr style={`border-color: #${route.route_color};`} />
-      {hideMode && (
+      <Toggle show={hideMode}>
         <input
           type="checkbox"
-          name={form.hidden_its}
-          value={itineraryId(route, itinerary)}
+          name="h"
+          value={id}
         />
-      )} <RouteLabel route={route} itinerary={itinerary} />
+        {" "}
+      </Toggle>
+      <RouteLabel route={route} itinerary={itinerary} />
       <div className="schedules">
         {schedule_items.map((s) => <Schedule schedule={s} />)}
       </div>
     </li>
+  );
+}
+
+interface ItineraryButtons {
+  url: URL;
+  hidden: HiddenItineraries;
+  hideMode: Signal<boolean>;
+}
+function ItineraryButtons({ data }: { data: ItineraryButtons }) {
+  const { url, hidden, hideMode } = data;
+  const hidden_list = Object.keys(hidden);
+  const urlWithoutHidden = new URL(url);
+  urlWithoutHidden.searchParams.delete(FIELD_ITINERARY);
+
+  return (
+    <div class="buttons">
+      <hr />
+      <Toggle hide={hideMode}>
+        {hidden_list.map((id) => (
+          <input type="hidden" name={FIELD_ITINERARY} value={id} />
+        ))}
+      </Toggle>
+      <Toggle show={hideMode}>
+        <button type="submit">Hide Checked Routes</button>
+      </Toggle>
+      <Toggle hide={hideMode}>
+        <button type="button" className="toggle-control">
+          Hide Routes
+        </button>
+      </Toggle>
+      {hidden_list.length > 0 && (
+        <a className="button" href={urlWithoutHidden.toString()}>
+          Show {hidden_list.length} hidden routes
+        </a>
+      )}
+    </div>
   );
 }
