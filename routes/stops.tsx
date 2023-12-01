@@ -1,6 +1,7 @@
 import Locator from "../islands/Locator.tsx";
 import Slider from "../islands/Slider.tsx";
 import { nearbyStops } from "../transit-api-client/nearbyStops.ts";
+import { FIELD_STOPS } from "../util/stops.ts";
 
 export default async function Stops(req: Request) {
   const url = new URL(req.url);
@@ -33,14 +34,14 @@ export default async function Stops(req: Request) {
           max="5000"
           value={max_distance || 150}
         />
-        <button type="submit">Refresh</button>
-        <button type="submit" formaction="/routes">Find Routes</button>
+        <button type="submit">Refresh stops</button>
+        <button type="submit" formaction="/routes">Find routes</button>
         <ul>
           {stops.map((stop) => (
             <li className="stop">
               <input
                 type="checkbox"
-                name="stops"
+                name={FIELD_STOPS}
                 value={stop.global_stop_id}
                 checked={selectedStops.includes(stop.global_stop_id)}
               />{" "}
