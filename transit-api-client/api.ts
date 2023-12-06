@@ -1,4 +1,8 @@
-import { cacheFetch } from "./cache.ts";
+import * as cache from "./cache.ts";
+
+export function init() {
+  cache.init();
+}
 
 export class APIError extends Error {
   constructor(res: Response) {
@@ -20,7 +24,7 @@ export async function fetchAPI(
   const url = new URL(`https://external.transitapp.com/v3/${trimmed}`);
   searchParams.forEach((value, key) => url.searchParams.set(key, value));
 
-  const res = await cacheFetch(url, { ...req, headers }, cacheTime);
+  const res = await cache.cacheFetch(url, { ...req, headers }, cacheTime);
 
   if (res.status === 429) {
     // exponential backoff

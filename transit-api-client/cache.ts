@@ -1,40 +1,67 @@
-import { Database } from "sqlite3";
+import { Database, Statement } from "sqlite3";
 import * as DateFns from "date-fns";
 
-const CACHE_DBNAME = Deno.env.get("CACHE_DBNAME") ?? "cache";
-const db = new Database(`db/${CACHE_DBNAME}.sqlite3`, {
-  enableLoadExtension: true,
-});
-addEventListener("unload", () => {
-  console.log("Closing DB");
-  db.close();
-});
+let db: Database;
+const CACHE_DB = Deno.env.get("CACHE_DB") ?? "db/cache.sqlite3";
 
 type CacheURL = string;
 type CacheResponse = string;
 type CacheExpiry = string;
 type CacheRow = [CacheURL, CacheResponse, CacheExpiry];
 
-db.exec(
-  `CREATE TABLE IF NOT EXISTS fetches (
-    url TEXT PRIMARY KEY,
-    response TEXT NOT NULL,
-    expiry INTEGER NOT NULL
-  )`,
-);
-
-const getCacheQuery = db.prepare(
-  "SELECT * FROM fetches WHERE url = ? and expiry > unixepoch('now')",
-);
-const setCacheQuery = db.prepare(
-  "INSERT OR REPLACE INTO fetches(url, response, expiry) VALUES (?, ?, ?)",
-);
-const clearCacheQuery = db.prepare("DELETE FROM fetches");
+let getCacheQuery: Statement;
+let setCacheQuery: Statement;
+let clearCacheQuery: Statement;
 
 export class ProxyError extends Error {
   constructor(res: Response) {
     super(`${res.status} ${res.statusText}`);
   }
+}
+
+export function init() {
+  if (!CACHE_DB) {
+    console.log("cache:", "no db configured");
+    return;
+  }
+
+  console.log("cache:", "open db", CACHE_DB);
+  db = new Database(CACHE_DB, {
+    enableLoadExtension: true,
+  });
+  addEventListener("beforeunload", (e) => {
+    e.preventDefault();
+    close();
+  });
+  Deno.addSignalListener("SIGTERM", () => {
+    close();
+    Deno.exit(128 + 15);
+  });
+  Deno.addSignalListener("SIGINT", () => {
+    close();
+    Deno.exit(128 + 2);
+  });
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS fetches (
+      url TEXT PRIMARY KEY,
+      response TEXT NOT NULL,
+      expiry INTEGER NOT NULL
+    )
+  `);
+
+  getCacheQuery = db.prepare(
+    "SELECT * FROM fetches WHERE url = ? and expiry > unixepoch('now')",
+  );
+  setCacheQuery = db.prepare(
+    "INSERT OR REPLACE INTO fetches(url, response, expiry) VALUES (?, ?, ?)",
+  );
+  clearCacheQuery = db.prepare("DELETE FROM fetches");
+}
+
+export function close() {
+  console.log("cache:", "close db");
+  db.close();
 }
 
 /**
