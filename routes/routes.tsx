@@ -35,11 +35,9 @@ export const handler: Handlers<Data> = {
     const hidden_its = url.searchParams.getAll(FIELD_ITINERARY) || [];
 
     if (stops.length == 0) {
-      const headers = new Headers();
-      headers.set("location", "/stops");
       return new Response(null, {
-        status: 302,
-        headers,
+        status: 307,
+        headers: { Location: "/stops" },
       });
     }
 
