@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { GlobalStopId } from './GlobalStopId';
+import type { GlobalStopId } from './GlobalStopId.ts';
 
 export type Stop = {
     /**

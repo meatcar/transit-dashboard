@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { DirectionId } from './DirectionId';
-import type { ScheduleItem } from './ScheduleItem';
-import type { Stop } from './Stop';
+import type { DirectionId } from './DirectionId.ts';
+import type { ScheduleItem } from './ScheduleItem.ts';
+import type { Stop } from './Stop.ts';
 
 export type ItineraryDetail = {
     /**

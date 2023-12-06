@@ -2,16 +2,16 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { FloatingPlacemark } from '../models/FloatingPlacemark';
-import type { GlobalRouteId } from '../models/GlobalRouteId';
-import type { GlobalStopId } from '../models/GlobalStopId';
-import type { StationPlacemark } from '../models/StationPlacemark';
-import type { TripSearchKey } from '../models/TripSearchKey';
-import type { VertexType } from '../models/VertexType';
+import type { FloatingPlacemark } from '../models/FloatingPlacemark.ts';
+import type { GlobalRouteId } from '../models/GlobalRouteId.ts';
+import type { GlobalStopId } from '../models/GlobalStopId.ts';
+import type { StationPlacemark } from '../models/StationPlacemark.ts';
+import type { TripSearchKey } from '../models/TripSearchKey.ts';
+import type { VertexType } from '../models/VertexType.ts';
 
-import type { CancelablePromise } from '../core/CancelablePromise';
-import { OpenAPI } from '../core/OpenAPI';
-import { request as __request } from '../core/request';
+import type { CancelablePromise } from '../core/CancelablePromise.ts';
+import { OpenAPI } from '../core/OpenAPI.ts';
+import { request as __request } from '../core/request.ts';
 
 export class SharedMobilityService {
 

@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { DirectionId } from './DirectionId';
-import type { ScheduleItem } from './ScheduleItem';
+import type { DirectionId } from './DirectionId.ts';
+import type { ScheduleItem } from './ScheduleItem.ts';
 
 export type Itinerary = {
     direction_id: DirectionId;

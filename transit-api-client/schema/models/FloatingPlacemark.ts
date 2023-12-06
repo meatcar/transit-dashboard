@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { VehicleType } from './VehicleType';
+import type { VehicleType } from './VehicleType.ts';
 
 export type FloatingPlacemark = {
     /**

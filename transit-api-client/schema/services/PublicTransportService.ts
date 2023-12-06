@@ -2,20 +2,20 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { GlobalRouteId } from '../models/GlobalRouteId';
-import type { GlobalStopId } from '../models/GlobalStopId';
-import type { ItineraryDetail } from '../models/ItineraryDetail';
-import type { LocationType } from '../models/LocationType';
-import type { NetworkId } from '../models/NetworkId';
+import type { GlobalRouteId } from '../models/GlobalRouteId.ts';
+import type { GlobalStopId } from '../models/GlobalStopId.ts';
+import type { ItineraryDetail } from '../models/ItineraryDetail.ts';
+import type { LocationType } from '../models/LocationType.ts';
+import type { NetworkId } from '../models/NetworkId.ts';
 import type { Route } from '../models/Route';
-import type { RouteType } from '../models/RouteType';
-import type { Stop } from '../models/Stop';
-import type { TripSearchKey } from '../models/TripSearchKey';
-import type { VertexType } from '../models/VertexType';
+import type { RouteType } from '../models/RouteType.ts';
+import type { Stop } from '../models/Stop.ts';
+import type { TripSearchKey } from '../models/TripSearchKey.ts';
+import type { VertexType } from '../models/VertexType.ts';
 
-import type { CancelablePromise } from '../core/CancelablePromise';
-import { OpenAPI } from '../core/OpenAPI';
-import { request as __request } from '../core/request';
+import type { CancelablePromise } from '../core/CancelablePromise.ts';
+import { OpenAPI } from '../core/OpenAPI.ts';
+import { request as __request } from '../core/request.ts';
 
 export class PublicTransportService {
 

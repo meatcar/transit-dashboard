@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { GlobalRouteId } from './GlobalRouteId';
-import type { Itinerary } from './Itinerary';
+import type { GlobalRouteId } from './GlobalRouteId.ts';
+import type { Itinerary } from './Itinerary.ts';
 
 export type Route = {
     global_route_id: GlobalRouteId;

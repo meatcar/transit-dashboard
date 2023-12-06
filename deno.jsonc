@@ -6,7 +6,8 @@
     "build": "deno run -A dev.ts build",
     "preview": "deno run -A --unstable main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update .",
-    "gen-schema": "deno run -A -r npm:openapi-typescript-codegen --input ./transit-api-client/openapi-schema-v3.0.0.json --output ./transit-api-client/schema/"
+    "gen-schema": "deno run -A -r npm:openapi-typescript-codegen --input ./transit-api-client/openapi-schema-v3.0.0.json --output ./transit-api-client/schema/",
+    "clean-schema": "find transit-api-client/schema/ -type f | xargs sed -i -E \"s/^((ex|im)port .+ from '.+)';$/\\1.ts';\""
   },
   "lint": { "rules": { "tags": ["fresh", "recommended"] } },
   "exclude": ["**/_fresh/*"],

@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ApiRequestOptions } from './ApiRequestOptions';
-import type { ApiResult } from './ApiResult';
+import type { ApiResult } from './ApiResult.ts';
 
 export class ApiError extends Error {
     public readonly url: string;

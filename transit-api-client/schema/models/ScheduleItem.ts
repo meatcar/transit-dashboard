@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { TripSearchKey } from './TripSearchKey';
+import type { TripSearchKey } from './TripSearchKey.ts';
 
 export type ScheduleItem = {
     /**
