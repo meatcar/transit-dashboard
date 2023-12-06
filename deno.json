@@ -7,10 +7,22 @@
     "preview": "deno run -A --unstable main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update .",
     "gen-schema": "deno run -A -r npm:openapi-typescript-codegen --input ./transit-api-client/openapi-schema-v3.0.0.json --output ./transit-api-client/schema/",
-    "clean-schema": "find transit-api-client/schema/ -type f | xargs sed -i -E \"s/^((ex|im)port .+ from '.+)';$/\\1.ts';\""
+    "clean-schema": "find transit-api-client/schema/ -type f | xargs sed -i -E \"s/^((ex|im)port .+ from '.+)';$/\\1.ts';\"",
+    "esm:add": "deno run -A https://esm.sh/v135 add",
+    "esm:update": "deno run -A https://esm.sh/v135 update",
+    "esm:remove": "deno run -A https://esm.sh/v135 remove"
   },
-  "lint": { "rules": { "tags": ["fresh", "recommended"] } },
-  "exclude": ["**/_fresh/*"],
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "exclude": [
+    "**/_fresh/*"
+  ],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.5.4/",
     "preact": "https://esm.sh/preact@10.18.1",
@@ -22,5 +34,9 @@
     "sqlite3": "https://deno.land/x/sqlite3@0.9.1/mod.ts",
     "date-fns": "https://esm.sh/date-fns@2.30.0"
   },
-  "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" }
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "scopes": {}
 }
