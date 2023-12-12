@@ -1,5 +1,9 @@
 FROM denoland/deno:alpine-1.38.5
 
+LABEL org.opencontainers.image.source=https://github.com/meatcar/transit-dashboard
+LABEL org.opencontainers.image.description="Accessible transit dashboard using transitapp's API"
+LABEL org.opencontainers.image.licenses=MIT
+
 EXPOSE 8000
 
 RUN mkdir /db && chown -R deno:deno /db

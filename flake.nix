@@ -1,5 +1,5 @@
 {
-  description = "a transit dashboard to show nearby stops and routes";
+  description = "Accessible transit dashboard using transitapp's API";
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
