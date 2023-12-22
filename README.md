@@ -6,7 +6,7 @@
 - [ ] Keep track of API queries to stay within quota
 ### Usage
 
-Make sure to (install Nix)[https://github.com/DeterminateSystems/nix-installer]
+Make sure to [install Nix](https://github.com/DeterminateSystems/nix-installer)
 
 Then start the project:
 
