@@ -16,6 +16,7 @@
         ...
       }: let
         name = "transit-dashboard";
+        lib = pkgs.lib;
       in {
         _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
@@ -33,22 +34,34 @@
         };
         packages.default = let
           nvfetcher = pkgs.callPackage ./_sources/generated.nix {};
-          esbuild = nvfetcher."esbuild-${pkgs.hostPlatform.system}";
+          esbuild = nvfetcher."esbuild-${system}";
+          deno = pkgs.deno;
         in
-          pkgs.denoPlatform.mkDenoDerivation {
+          pkgs.denoPlatform.mkDenoDerivation rec {
             inherit name;
             version = "0.1.0";
+
+            runtimeInputs = [deno];
 
             src = ./.;
 
             env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
+
+            binaryName = "main.ts";
+
+            runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
+              permissions.allow.all = true;
+              entryPoint = "";
+            };
 
             buildPhase = ''
               deno task build
             '';
 
             installPhase = ''
-              cp -r _fresh $out
+              cp -r ./ $out/
+              sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/${binaryName}
+              chmod +x $out/${binaryName}
             '';
           };
       };
