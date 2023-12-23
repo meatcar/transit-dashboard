@@ -17,7 +17,7 @@
       }: let
         name = "transit-dashboard";
         lib = pkgs.lib;
-      in {
+      in rec {
         _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
           overlays = [inputs.nix-deno.overlays.default];
@@ -32,38 +32,56 @@
             deno task
           '';
         };
-        packages.default = let
-          nvfetcher = pkgs.callPackage ./_sources/generated.nix {};
-          esbuild = nvfetcher."esbuild-${system}";
-          deno = pkgs.deno;
-        in
-          pkgs.denoPlatform.mkDenoDerivation rec {
-            inherit name;
-            version = "0.1.0";
+        packages = {
+          default = let
+            nvfetcher = pkgs.callPackage ./_sources/generated.nix {};
+            esbuild = nvfetcher."esbuild-${system}";
+            deno = pkgs.deno;
+          in
+            pkgs.denoPlatform.mkDenoDerivation rec {
+              inherit name;
+              version = "0.1.0";
 
-            runtimeInputs = [deno];
+              runtimeInputs = [deno];
 
-            src = ./.;
+              src = ./.;
 
-            env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
+              env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
 
-            binaryName = "main.ts";
+              binaryName = "main.ts";
 
-            runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
-              permissions.allow.all = true;
-              entryPoint = "";
+              runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
+                permissions.allow.all = true;
+                entryPoint = "";
+              };
+
+              buildPhase = ''
+                deno task build
+              '';
+
+              installPhase = ''
+                cp -r ./ $out/
+                sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/${binaryName}
+                chmod +x $out/${binaryName}
+              '';
             };
-
-            buildPhase = ''
-              deno task build
+          dockerImage = pkgs.dockerTools.buildImage {
+            name = "transit-dashboard";
+            tag = "latest";
+            runAsRoot = ''
+              #!${pkgs.runtimeShell}
+              mkdir -p /db
             '';
-
-            installPhase = ''
-              cp -r ./ $out/
-              sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/${binaryName}
-              chmod +x $out/${binaryName}
-            '';
+            copyToRoot = pkgs.buildEnv {
+              name = "package";
+              paths = [packages.default];
+            };
+            config = {
+              Cmd = ["${packages.default}/main.ts"];
+              Env = ["CACHE_DB=/db/cache.sqlite3"];
+            };
           };
+        };
       };
     };
 }
