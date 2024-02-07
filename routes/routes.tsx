@@ -62,7 +62,6 @@ export default function Routes(
   { url, data: { stops, routes, hidden } }: PageProps<Data>,
 ) {
   const hideMode = useSignal(false);
-  console.log("hidden", Object.keys(hidden));
 
   return (
     <form className="routes">
@@ -93,11 +92,6 @@ function ItineraryRow({ data }: { data: ItineraryProps }) {
   const { route, itinerary, hidden, hideMode } = data;
   const { schedule_items } = itinerary;
   const id = makeItineraryId(route, itinerary);
-
-  console.log("itinerary", {
-    id,
-    hideMode: hideMode.value,
-  });
 
   if (hidden[id]) return null;
   return (

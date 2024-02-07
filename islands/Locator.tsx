@@ -57,7 +57,6 @@ export default function Locator({ action }: Props) {
   async function getLocation() {
     loading.value = true;
     const position = await asyncGetCurrentPosition();
-    console.log(position.coords);
     lat.value = position.coords.latitude.toString();
     lon.value = position.coords.longitude.toString();
     loading.value = false;
@@ -68,7 +67,6 @@ export default function Locator({ action }: Props) {
     if (lat.value == "" || lon.value == "") {
       await getLocation();
     }
-    console.log(lat.value, lon.value);
     (e.target as HTMLFormElement).form.submit();
   }
 

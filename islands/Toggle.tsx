@@ -23,7 +23,6 @@ export default function Toggle(props: ToggleProps) {
   }
 
   const onClick = (e: MouseEvent) => {
-    console.log("click", e.target);
     if ((e.target as HTMLElement).classList.contains("toggle-control")) {
       toggle.value = !toggle.value;
     }
