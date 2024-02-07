@@ -112,6 +112,10 @@ nav .logo {
   list-style: none;
   padding: 0;
   margin: 0;
+
+  li:hover {
+    background: rgba(0,0,0,0.05);
+  }
 }
 
 .routes li {
@@ -131,29 +135,39 @@ nav .logo {
   display: none !important;
 }
 
-button,
-.button {
-  display: inline-block;
-  background: #ccc;
+button, .button, input[type="text"] {
   color: black;
   text-decoration: none;
   font-family: inherit;
   font-size: 1rem;
-  line-height: inherit;
+  border-radius: 0.5rem;
   margin: 0.25rem;
   padding: 0.25rem 1rem;
-  border-radius: 0.5rem;
+}
+
+button,
+.button {
+  display: inline-block;
+  background: #ccc;
+  line-height: inherit;
   border: none;
+
+  &:hover { background: #ddd; }
+  &:active { background: #eee; }
 }
 
-button:hover,
-.button:hover {
-  background: #ddd;
+input[type="text"] {
+  border-style: solid;
 }
 
-button:active,
-.button:active {
-  background: #eee;
+.hr {
+  displaiy: block;
+  width: 100%;
+  text-align: center;
+  &::before, &::after {
+    content: "—";
+    margin: 0 1em;
+  }
 }
 
 .schedules {
@@ -177,4 +191,8 @@ button:active,
 
 .schedule .ts.live::before {
   content: "";
+}
+
+.stop .stop_id {
+  float: right;
 }

@@ -13,7 +13,7 @@ export function Schedule({ schedule }: ScheduleProps) {
   return (
     <span className="schedule">
       <span className="ts">
-        ◷{time(schedule.scheduled_departure_time)}
+        ⊟{time(schedule.scheduled_departure_time)}
       </span>
       {schedule.is_real_time && (
         <span className="ts live">◉{time(schedule.departure_time)}</span>

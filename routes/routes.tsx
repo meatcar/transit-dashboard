@@ -64,21 +64,23 @@ export default function Routes(
   const hideMode = useSignal(false);
 
   return (
-    <form className="routes">
-      <h1>
-        Routes
-        <Clock />
-      </h1>
-      {stops.map((s) => <input type="hidden" name={FIELD_STOPS} value={s} />)}
-      <ul>
-        {routes.map((route) =>
-          route.itineraries?.map((itinerary: Itinerary) => (
-            <ItineraryRow data={{ route, itinerary, hideMode, hidden }} />
-          ))
-        )}
-      </ul>
-      <ItineraryButtons data={{ url, hideMode, hidden }} />
-    </form>
+    <section>
+      <form className="routes">
+        <h1>
+          Nearby Routes
+          <Clock />
+        </h1>
+        {stops.map((s) => <input type="hidden" name={FIELD_STOPS} value={s} />)}
+        <ul>
+          {routes.map((route) =>
+            route.itineraries?.map((itinerary: Itinerary) => (
+              <ItineraryRow data={{ route, itinerary, hideMode, hidden }} />
+            ))
+          )}
+        </ul>
+        <ItineraryButtons data={{ url, hideMode, hidden }} />
+      </form>
+    </section>
   );
 }
 
@@ -133,16 +135,16 @@ function ItineraryButtons({ data }: { data: ItineraryButtons }) {
         ))}
       </Toggle>
       <Toggle show={hideMode}>
-        <button type="submit">Hide Checked Routes</button>
+        <button type="submit">✅ Hide Checked Routes</button>
       </Toggle>
       <Toggle hide={hideMode}>
         <button type="button" className="toggle-control">
-          Hide Routes
+          👻 Hide Routes
         </button>
       </Toggle>
       {hidden_list.length > 0 && (
         <a className="button" href={urlWithoutHidden.toString()}>
-          Show {hidden_list.length} hidden routes
+          ✴️ Show {hidden_list.length} hidden routes
         </a>
       )}
     </div>

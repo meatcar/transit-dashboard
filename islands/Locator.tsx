@@ -84,33 +84,25 @@ export default function Locator({ action }: Props) {
         />
         <script>{"function initMap() { console.log('gmaps init'); }"}</script>
       </Head>
+      <input type="hidden" name="lat" value={lat} onInput={onInput(lat)} />
+      <input type="hidden" name="lon" value={lon} onInput={onInput(lon)} />
+      <Button type="submit" onClick={submit} disabled={loading}>
+        📍Use my current location
+      </Button>
+      <div className="hr">OR</div>
       <div>
-        <label htmlFor="address">
-          Address:
-        </label>
-        <br />
         <input
           type="text"
           name="address"
-          placeholder="Enter a location"
+          placeholder="Find an address"
           ref={addressRef}
         />
       </div>
-      <div>
-        <label htmlFor="lat">Latitude:</label>
-        <br />
-        <input type="text" name="lat" value={lat} onInput={onInput(lat)} />
-      </div>
-      <div>
-        <label htmlFor="lon">Longitude:</label>
-        <br />
-        <input type="text" name="lon" value={lon} onInput={onInput(lon)} />
-      </div>
       <Button type="submit" onClick={submit} disabled={loading}>
-        Search
+        🔎 Search
       </Button>
       <div>
-        {loading.value && <span>Getting location, please wait.</span>}
+        {loading.value && <span>Requesting location...</span>}
       </div>
     </form>
   );

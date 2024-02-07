@@ -5,7 +5,9 @@ export default function Slider(props: JSX.HTMLAttributes<HTMLInputElement>) {
   const v = useSignal(props.value as number);
   return (
     <>
-      <label for={props.name}>{props.name} {v}</label>
+      <label for={props.name}>
+        {props.label} <em>{v}</em> {props.unit}
+      </label>
       <br />
       <input
         type="range"

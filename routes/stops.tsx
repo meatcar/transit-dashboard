@@ -7,7 +7,14 @@ export default async function Stops(req: Request) {
   const url = new URL(req.url);
   const lat = url.searchParams.get("lat") || "";
   const lon = url.searchParams.get("lon") || "";
-  if (!lat || !lon) return <Locator action="/stops" />;
+  if (!lat || !lon) {
+    return (
+      <section>
+        <h2>Nearby Stops</h2>
+        <Locator action="/stops" />
+      </section>
+    );
+  }
 
   let max_distance;
   if (url.searchParams.has("max_distance")) {
@@ -23,19 +30,21 @@ export default async function Stops(req: Request) {
     max_distance,
   );
   return (
-    <div class="stops">
+    <section className="stops">
       <h1>Nearby Stops</h1>
       <form>
         <input type="hidden" name="lat" value={lat} />
         <input type="hidden" name="lon" value={lon} />
         <Slider
+          label="Within"
+          unit="meters"
           name="max_distance"
           min="0"
           max="5000"
           value={max_distance || 150}
         />
-        <button type="submit">Refresh stops</button>
-        <button type="submit" formaction="/routes">Find routes</button>
+        <button type="submit">🔄️ Refresh stops</button>
+        <button type="submit" formaction="/routes">🔎 Find routes</button>
         <ul>
           {stops.map((stop) => (
             <li className="stop">
@@ -45,11 +54,12 @@ export default async function Stops(req: Request) {
                 value={stop.global_stop_id}
                 checked={selectedStops.includes(stop.global_stop_id)}
               />{" "}
-              {stop.stop_name} <small>{stop.global_stop_id}</small>
+              {stop.stop_name}{" "}
+              <small className="stop_id">{stop.global_stop_id}</small>
             </li>
           ))}
         </ul>
       </form>
-    </div>
+    </section>
   );
 }

@@ -14,7 +14,10 @@ export function RouteLabel({ route, itinerary }: RouteLabelProps) {
         return "🚇";
       case "Commuter Rail":
         return "🚂";
+      case "Streetcar":
+        return "🚋";
       default:
+        console.warn("unknown route type '", s, "'");
         return "🚀";
     }
   }
