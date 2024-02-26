@@ -7,8 +7,8 @@ LABEL org.opencontainers.image.licenses=MIT
 EXPOSE 8000
 
 RUN mkdir /db && chown -R deno:deno /db
-VOLUME /db
-ENV CACHE_DB=/db/cache.sqlite3
+VOLUME /cache
+ENV CACHE_DIRECTORY=/cache
 
 RUN mkdir /app && chown -R deno:deno /app
 USER deno

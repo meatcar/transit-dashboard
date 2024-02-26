@@ -76,10 +76,7 @@
               name = "package";
               paths = [packages.default];
             };
-            config = {
-              Cmd = ["${packages.default}/main.ts"];
-              Env = ["CACHE_DB=/db/cache.sqlite3"];
-            };
+            config.Cmd = ["${packages.default}/main.ts"];
           };
         };
       };

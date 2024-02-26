@@ -2,7 +2,8 @@ import { DB, PreparedQuery } from "sqlite";
 import * as DateFns from "date-fns";
 
 let db: DB;
-const CACHE_DB = Deno.env.get("CACHE_DB") ?? "db/cache.sqlite3";
+const CACHE_DIRECTORY = Deno.env.get("CACHE_DIRECTORY") ?? "cache";
+const CACHE_DB = `${CACHE_DIRECTORY}/cache.sqlite3`;
 const NO_CACHE = Deno.env.get("NO_CACHE") ?? false;
 
 type CacheURL = string;
