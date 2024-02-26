@@ -80,5 +80,63 @@
           };
         };
       };
+      flake = {
+        nixosConfigurations.container = inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            self.nixosModules.transit-dashboard
+            ({pkgs, ...}: {
+              # Only allow this to boot as a container
+              boot.isContainer = true;
+              networking.hostName = "transit-dashboard";
+
+              # Allow nginx through the firewall
+              networking.firewall.allowedTCPPorts = [8000];
+
+              services.nginx.enable = true;
+              services.nginx.tailscaleAuth.enable = true;
+
+              services.tailscale.enable = true;
+              services.tailscale.interfaceName = "userspace-networking";
+              environment.variables.HTTP_PROXY = "http://localhost:1055/";
+
+              services.transit-dashboard.enable = true;
+            })
+          ];
+        };
+        nixosModules.transit-dashboard = {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+          with lib; let
+            cfg = config.services.transit-dashboard;
+          in {
+            options.services.transit-dashboard = {
+              enable = mkEnableOption "Enables the Transit Dashboard service";
+            };
+
+            config = mkIf cfg.enable {
+              systemd.services."transit-dashboard" = {
+                wantedBy = ["multi-user.target"];
+
+                serviceConfig = let
+                  pkg = self.packages.${system}.default;
+                in {
+                  Restart = "on-failure";
+                  ExecStart = "${pkg}/main.ts";
+                  DynamicUser = "yes";
+                  RuntimeDirectory = "transit-dashboard";
+                  RuntimeDirectoryMode = "0755";
+                  StateDirectory = "transit-dashboard";
+                  StateDirectoryMode = "0700";
+                  CacheDirectory = "transit-dashboard";
+                  CacheDirectoryMode = "0750";
+                };
+              };
+            };
+          };
+      };
     };
 }
