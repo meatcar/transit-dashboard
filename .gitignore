@@ -22,5 +22,5 @@
 _fresh/
 
 # databases
-db/
+cache/
 /result
