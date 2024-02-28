@@ -3,34 +3,34 @@
 {
   esbuild-aarch64-darwin = {
     pname = "esbuild-aarch64-darwin";
-    version = "0.19.4";
+    version = "0.19.11";
     src = fetchTarball {
-      url = "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.19.4.tgz";
-      sha256 = "sha256-mtCCgWZi2wdbgz0gRYLP/GZfgJ/UKLnPTBvc5pxpk9g=";
+      url = "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.19.11.tgz";
+      sha256 = "sha256-O925J8wKbJYxryrdp3FlSIh1Gy9j34fvRstfTaZQQ/c=";
     };
   };
   esbuild-aarch64-linux = {
     pname = "esbuild-aarch64-linux";
-    version = "0.19.4";
+    version = "0.19.11";
     src = fetchTarball {
-      url = "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.19.4.tgz";
-      sha256 = "sha256-0UNPha4R8O8cCDiddB6755asI8eFzZT/wvwrN7xEKPo=";
+      url = "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.19.11.tgz";
+      sha256 = "sha256-LNm7VVc31xXE10aorOB0i8NK3J3Z82uNLOBj3JjX0iw=";
     };
   };
   esbuild-x86_64-darwin = {
     pname = "esbuild-x86_64-darwin";
-    version = "0.19.4";
+    version = "0.19.11";
     src = fetchTarball {
-      url = "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.19.4.tgz";
-      sha256 = "sha256-6vGfZgKyZw0DHkov07UYsIIGIy8DyeDvcn6qZSPTDxU=";
+      url = "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.19.11.tgz";
+      sha256 = "sha256-tOoRaAFIuYVhKVGVW8rG+k1RbPWQ23bdjv9kqWAq4rw=";
     };
   };
   esbuild-x86_64-linux = {
     pname = "esbuild-x86_64-linux";
-    version = "0.19.4";
+    version = "0.19.11";
     src = fetchTarball {
-      url = "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.19.4.tgz";
-      sha256 = "sha256-Cf8siblPU9rrTajm88VYibOSIimM2Of0kQudINeOrew=";
+      url = "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.19.11.tgz";
+      sha256 = "sha256-LDM8pA+PQTBm2U8ZznlIof8fsJ5ievUUZwuYWCCa41A=";
     };
   };
 }
