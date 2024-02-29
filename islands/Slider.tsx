@@ -1,7 +1,11 @@
 import { JSX } from "preact";
 import { useSignal } from "@preact/signals";
 
-export default function Slider(props: JSX.HTMLAttributes<HTMLInputElement>) {
+interface SliderProps extends JSX.HTMLAttributes<HTMLInputElement> {
+  unit: string;
+}
+
+export default function Slider(props: SliderProps) {
   const v = useSignal(props.value as number);
   return (
     <>
