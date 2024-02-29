@@ -53,6 +53,7 @@
               runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
                 permissions.allow.all = true;
                 entryPoint = "";
+                additionalDenoArgs = "--cached-only";
               };
 
               buildPhase = ''
@@ -63,6 +64,7 @@
                 cp -r ./ $out/
                 sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/${binaryName}
                 chmod +x $out/${binaryName}
+                cp -r "$TMPDIR"/deno_cache $out/deno_cache
               '';
             };
           dockerImage = pkgs.dockerTools.buildImage {
