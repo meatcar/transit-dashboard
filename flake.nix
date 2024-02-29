@@ -16,8 +16,7 @@
         ...
       }: let
         name = "transit-dashboard";
-        lib = pkgs.lib;
-      in rec {
+      in {
         _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
           overlays = [inputs.nix-deno.overlays.default];
@@ -32,114 +31,83 @@
             deno task
           '';
         };
-        packages = {
-          default = let
-            nvfetcher = pkgs.callPackage ./_sources/generated.nix {};
-            esbuild = nvfetcher."esbuild-${system}";
-            deno = pkgs.deno;
-          in
-            pkgs.denoPlatform.mkDenoDerivation rec {
-              inherit name;
-              version = "0.1.0";
+        packages = let
+          nvfetcher = pkgs.callPackage ./_sources/generated.nix {};
+          esbuild = nvfetcher."esbuild-${system}";
+          deno = pkgs.deno;
+        in rec {
+          transit-dashboard = default;
+          default = pkgs.denoPlatform.mkDenoDerivation rec {
+            # loosely based on mkDenoPackage
+            inherit name;
+            version = "0.1.0";
 
-              runtimeInputs = [deno];
+            runtimeInputs = [deno];
 
-              src = ./.;
+            src = ./.;
 
-              env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
+            env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
 
-              binaryName = "main.ts";
+            binaryName = "main.ts";
 
-              runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
-                permissions.allow.all = true;
-                entryPoint = "";
-                additionalDenoArgs = "--cached-only";
-              };
-
-              buildPhase = ''
-                deno task build
-              '';
-
-              installPhase = ''
-                mkdir -p $out/app
-                cp -r ./ $out/app/
-                cp -r "$TMPDIR"/deno_cache $out/app/deno_cache
-                sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/app/${binaryName}
-                chmod +x $out/app/${binaryName}
-              '';
+            runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
+              entryPoint = "";
+              permissions.allow.all = true;
+              additionalDenoArgs = "--cached-only";
             };
-          dockerImage = pkgs.dockerTools.buildImage {
-            name = "transit-dashboard";
-            tag = "latest";
-            runAsRoot = ''
-              #!${pkgs.runtimeShell}
-              mkdir -p /db
+
+            buildPhase = ''
+              mkdir -p cache
+              deno task build
             '';
+
+            installPhase = ''
+              mkdir -p $out/app
+              cp -r ./ $out/app/
+              cp -r "$TMPDIR"/deno_cache $out/app/
+              sed -i -e "1i#!/usr/bin/env -S ${deno}/bin/deno run ${runtimeArgs}" $out/app/${binaryName}
+              chmod +x $out/app/${binaryName}
+            '';
+          };
+
+          dockerImage = pkgs.dockerTools.buildImage {
+            inherit (dockerLayeredImage) name tag config;
             copyToRoot = pkgs.buildEnv {
-              name = "package";
-              paths = [packages.default];
+              name = "image-root";
+              paths = dockerLayeredImage.contents;
             };
-            config.Cmd = ["${packages.default}/main.ts"];
+          };
+
+          dockerLayeredImage = pkgs.dockerTools.buildLayeredImage {
+            inherit name;
+            tag = "latest";
+            contents = [
+              default
+              pkgs.tailscale
+              pkgs.busybox
+            ];
+            maxLayers = 125;
+            config = {
+              Env = [
+                "TS_AUTHKEY=CHANGEME"
+                "TS_AUTHKEY__FILE=CHANGEME"
+                "TS_STATE_DIR=/var/lib/tailscale"
+                "DENO_DIR=/app/deno_cache"
+              ];
+              WorkingDir = "/app";
+              Entrypoint = ["/bin/sh" "-c"];
+              Cmd = [
+                ''
+                  mkdir -p "$TS_STATE_DIR" && \
+                  tailscaled --statedir "$TS_STATE_DIR" & \
+                  tailscale up --authkey=$(cat $TS_AUTHKEY__FILE || echo $TS_AUTHKEY) && \
+                     /app/main.ts
+                ''
+              ];
+            };
           };
         };
       };
-      flake = {
-        nixosConfigurations.container = inputs.nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            self.nixosModules.transit-dashboard
-            ({pkgs, ...}: {
-              # Only allow this to boot as a container
-              boot.isContainer = true;
-              networking.hostName = "transit-dashboard";
-
-              # Allow nginx through the firewall
-              networking.firewall.allowedTCPPorts = [8000];
-
-              services.nginx.enable = true;
-              services.nginx.tailscaleAuth.enable = true;
-
-              services.tailscale.enable = true;
-              services.tailscale.interfaceName = "userspace-networking";
-              environment.variables.HTTP_PROXY = "http://localhost:1055/";
-
-              services.transit-dashboard.enable = true;
-            })
-          ];
-        };
-        nixosModules.transit-dashboard = {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-          with lib; let
-            cfg = config.services.transit-dashboard;
-          in {
-            options.services.transit-dashboard = {
-              enable = mkEnableOption "Enables the Transit Dashboard service";
-            };
-
-            config = mkIf cfg.enable {
-              systemd.services."transit-dashboard" = {
-                wantedBy = ["multi-user.target"];
-
-                serviceConfig = let
-                  pkg = self.packages.${system}.default;
-                in {
-                  Restart = "on-failure";
-                  ExecStart = "${pkg}/main.ts";
-                  DynamicUser = "yes";
-                  RuntimeDirectory = "transit-dashboard";
-                  RuntimeDirectoryMode = "0755";
-                  StateDirectory = "transit-dashboard";
-                  StateDirectoryMode = "0700";
-                  CacheDirectory = "transit-dashboard";
-                  CacheDirectoryMode = "0750";
-                };
-              };
-            };
-          };
-      };
+      flake = {};
     };
 }
