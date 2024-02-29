@@ -2,16 +2,8 @@
   self',
   pkgs,
   name,
-}: rec {
-  dockerImage = pkgs.dockerTools.buildImage {
-    inherit (dockerLayeredImage) name tag config;
-    copyToRoot = pkgs.buildEnv {
-      name = "image-root";
-      paths = dockerLayeredImage.contents;
-    };
-  };
-
-  dockerLayeredImage = pkgs.dockerTools.buildLayeredImage {
+}: let
+  layeredOpts = {
     name = "meatcar/${name}";
     tag = "latest";
     contents = [
@@ -19,7 +11,6 @@
       pkgs.tailscale
       pkgs.busybox
     ];
-    maxLayers = 125;
     config = {
       Env = [
         "TS_AUTHKEY=CHANGEME"
@@ -37,6 +28,21 @@
              /app/main.ts
         ''
       ];
+    };
+  };
+in {
+  dockerLayeredImage = pkgs.dockerTools.buildLayeredImage (
+    layeredOpts
+    // {
+      maxLayers = 125;
+    }
+  );
+
+  dockerImage = pkgs.dockerTools.buildImage {
+    inherit (layeredOpts) name tag config;
+    copyToRoot = pkgs.buildEnv {
+      name = "image-root";
+      paths = layeredOpts.contents;
     };
   };
 }
