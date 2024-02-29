@@ -11,9 +11,9 @@
     "esm:add": "deno run -A https://esm.sh/v135 add",
     "esm:update": "deno run -A https://esm.sh/v135 update",
     "esm:remove": "deno run -A https://esm.sh/v135 remove",
-    "nix-cache-ts": "sed -Ei \"s/fresh@[0-9.]+/$(grep -Po 'fresh@\\d+\\.\\d+\\.\\d+' deno.lock | sort | uniq)/\" nix-cache.ts",
+    "update-nix-cache": "sed -Ei \"s/fresh@[0-9.]+/$(grep -Po 'fresh@\\d+\\.\\d+\\.\\d+' deno.lock | sort | uniq)/\" nix-cache.ts",
     "generate-lock": "rm -f deno.lock && find -name '*.ts' -not -path './transit-api-client/schema/*' | xargs deno cache --lock-write",
-    "update": "deno task fresh-update && deno task esm:update && deno task nix-cache-ts && deno task generate-lock && nvfetcher"
+    "update": "deno task fresh-update && deno task esm:update && deno task update-nix-cache && deno task generate-lock && nvfetcher"
   },
   "lint": {
     "rules": {
