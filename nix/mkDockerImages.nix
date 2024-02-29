@@ -12,7 +12,7 @@
   };
 
   dockerLayeredImage = pkgs.dockerTools.buildLayeredImage {
-    inherit name;
+    name = "meatcar/${name}";
     tag = "latest";
     contents = [
       self'.packages.default
