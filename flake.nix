@@ -61,10 +61,11 @@
               '';
 
               installPhase = ''
-                cp -r ./ $out/
-                sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/${binaryName}
-                chmod +x $out/${binaryName}
-                cp -r "$TMPDIR"/deno_cache $out/deno_cache
+                mkdir -p $out/app
+                cp -r ./ $out/app/
+                cp -r "$TMPDIR"/deno_cache $out/app/deno_cache
+                sed -i -e "1i#!/usr/bin/env -S ${lib.getExe deno} run ${runtimeArgs}" $out/app/${binaryName}
+                chmod +x $out/app/${binaryName}
               '';
             };
           dockerImage = pkgs.dockerTools.buildImage {
