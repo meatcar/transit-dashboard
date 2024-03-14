@@ -16,9 +16,9 @@
     traefikStaticConfig = yaml.generate "traefik_static_conf.yaml" {
       certificatesResolvers.${resolver}.tailscale = {};
       entryPoints.web.address = ":80";
-      # entryPoints.web.http.redirections.entryPoint.to = "websecure";
-      # entryPoints.web.http.redirections.entryPoint.scheme = "https";
-      # entryPoints.web.http.redirections.entrypoint.permanent = true;
+      entryPoints.web.http.redirections.entryPoint.to = "websecure";
+      entryPoints.web.http.redirections.entryPoint.scheme = "https";
+      entryPoints.web.http.redirections.entrypoint.permanent = true;
       entryPoints.websecure.address = ":443";
       providers.file.filename = traefikDynamicConfig;
     };
