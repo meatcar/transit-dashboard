@@ -5,25 +5,29 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nix-deno.url = "github:nekowinston/nix-deno";
+    nix2container.url = "github:nlewo/nix2container";
+    traefik = {
+      url = "github:traefik/traefik/v3.0.0-rc2";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {self, ...}:
     inputs.flake-parts.lib.mkFlake {inherit inputs;} {
       systems = ["x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin"];
+      imports = [
+        # flake modules
+        ./nix/traefik3.nix
+        ./nix/package.nix
+        ./nix/docker.nix
+      ];
       perSystem = {
-        system,
         self',
         pkgs,
         ...
-      }: let
-        name = "transit-dashboard";
-      in {
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          overlays = [inputs.nix-deno.overlays.default];
-        };
+      }: {
         devShells.default = pkgs.mkShell {
-          inherit name;
+          inherit (self'.packages.default) name;
           buildInputs = with pkgs; [
             deno
             nvfetcher
@@ -32,12 +36,7 @@
             deno task
           '';
         };
-        packages =
-          {
-            default = import nix/mkPackage.nix {inherit pkgs system name;};
-          }
-          // (import nix/mkDockerImages.nix {inherit self' pkgs name;});
+        packages.default = self'.packages.transit-dashboard;
       };
-      flake = {};
     };
 }
