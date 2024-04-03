@@ -1,7 +1,6 @@
 import { DB, PreparedQuery } from "sqlite";
 import * as DateFns from "date-fns";
 
-let db: DB;
 const CACHE_DIRECTORY = Deno.env.get("CACHE_DIRECTORY") ?? "cache";
 const CACHE_DB = `${CACHE_DIRECTORY}/cache.sqlite3`;
 const NO_CACHE = Deno.env.get("NO_CACHE") ?? false;
@@ -11,15 +10,10 @@ type CacheResponse = string;
 type CacheExpiry = string;
 type CacheRow = [CacheURL, CacheResponse, CacheExpiry];
 
+let db: DB;
 let getCacheQuery: PreparedQuery;
 let setCacheQuery: PreparedQuery;
 let clearCacheQuery: PreparedQuery;
-
-export class ProxyError extends Error {
-  constructor(res: Response) {
-    super(`${res.status} ${res.statusText}`);
-  }
-}
 
 export function init() {
   if (NO_CACHE) {
@@ -30,7 +24,7 @@ export function init() {
   console.log("cache:", "open db", CACHE_DB);
   db = new DB(CACHE_DB, {});
 
-  addEventListener("beforeunload", (e) => {
+  addEventListener("beforeunload", () => {
     close();
   });
   Deno.addSignalListener("SIGTERM", () => {
@@ -61,6 +55,9 @@ export function init() {
 
 export function close() {
   console.log("cache:", "close db");
+  getCacheQuery.finalize();
+  setCacheQuery.finalize();
+  clearCacheQuery.finalize();
   db.close(true);
 }
 
@@ -79,13 +76,14 @@ export async function cacheFetch(
 ): Promise<Response> {
   const urlStr = url.toString();
   const [cache] = getCacheQuery.all([urlStr]);
-  console.debug(`cache ${cache ? "HIT" : "MISS"} (${urlStr})`);
 
   let res: Response;
   if (cache) {
+    console.debug(`cache: hit (${urlStr})`);
     const [_url, response, _expiry] = cache as CacheRow;
     res = new Response(response, { status: 200 });
   } else {
+    console.debug(`cache: miss (${urlStr})`);
     res = await fetch(url, req);
     if (res.status === 200) {
       const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;

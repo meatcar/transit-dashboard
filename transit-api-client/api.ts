@@ -1,5 +1,7 @@
 import * as cache from "./cache.ts";
 
+const API_KEY = Deno.env.get("TRANSIT_API_KEY") ?? "";
+
 export function init() {
   cache.init();
 }
@@ -10,15 +12,19 @@ export class APIError extends Error {
   }
 }
 
+const BASE_BACKOFF = 1000; // 1 second
+let backoff = 0;
+
 export async function fetchAPI(
   cacheTime: number,
   path: string,
   searchParams: URLSearchParams = new URLSearchParams(),
   req: RequestInit = {},
-  backoff = 1000, // 1 second
 ): Promise<Response> {
+  if (backoff > 0) await new Promise((resolve) => setTimeout(resolve, backoff));
+
   const headers = new Headers(req.headers);
-  headers.append("apiKey", Deno.env.get("TRANSIT_API_KEY") ?? "");
+  headers.append("apiKey", API_KEY);
 
   const trimmed = path.replace(/^\//, "");
   const url = new URL(`https://external.transitapp.com/v3/${trimmed}`);
@@ -28,8 +34,9 @@ export async function fetchAPI(
 
   if (res.status === 429) {
     // exponential backoff
-    await new Promise((resolve) => setTimeout(resolve, backoff));
-    return fetchAPI(cacheTime, path, searchParams, req, backoff * 2);
+    backoff = (backoff || BASE_BACKOFF) * 2;
+    return fetchAPI(cacheTime, path, searchParams, req);
+  } else {
+    return res;
   }
-  return res;
 }
