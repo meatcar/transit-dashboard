@@ -1,14 +1,12 @@
-import { Head, IS_BROWSER } from "$fresh/runtime.ts";
+import { Head } from "fresh/runtime";
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { JSX } from "preact/jsx-runtime";
 import { useRef } from "preact/hooks";
 
-const GMAPS_API_KEY = IS_BROWSER ? "" : Deno.env.get("GMAPS_API_KEY");
-window.initMap = () => {};
-
 interface Props {
   action: string;
+  gmapsKey: string;
 }
 
 declare global {
@@ -19,7 +17,9 @@ declare global {
   }
 }
 
-export default function Locator({ action }: Props) {
+globalThis.initMap = () => {};
+
+export default function Locator({ action, gmapsKey }: Props) {
   const loading = useSignal(false);
   const lat = useSignal("");
   const lon = useSignal("");
@@ -28,7 +28,7 @@ export default function Locator({ action }: Props) {
   // deno-lint-ignore no-explicit-any
   let autocomplete: any;
   useSignalEffect(() => {
-    const { Autocomplete } = window.google?.maps?.places || {};
+    const { Autocomplete } = globalThis.google?.maps?.places || {};
 
     autocomplete = new Autocomplete(
       addressRef.current,
@@ -80,7 +80,7 @@ export default function Locator({ action }: Props) {
         <script
           key="gmaps"
           defer
-          src={`https://maps.googleapis.com/maps/api/js?key=${GMAPS_API_KEY}&libraries=places&callback=initMap`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${gmapsKey}&libraries=places&callback=initMap`}
         />
         <script>{"function initMap() { console.log('gmaps init'); }"}</script>
       </Head>

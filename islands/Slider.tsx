@@ -1,7 +1,8 @@
-import { JSX } from "preact";
+import type { ComponentProps } from "preact";
 import { useSignal } from "@preact/signals";
 
-interface SliderProps extends JSX.HTMLAttributes<HTMLInputElement> {
+interface SliderProps extends ComponentProps<"input"> {
+  label: string;
   unit: string;
 }
 

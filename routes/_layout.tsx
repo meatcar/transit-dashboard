@@ -1,8 +1,6 @@
-import { LayoutProps } from "$fresh/server.ts";
-import { Badge } from "../components/Badge.tsx";
+import type { PageProps } from "fresh";
 
-export default function Layout({ Component, state }: LayoutProps) {
-  // do something with state here
+export default function Layout({ Component }: PageProps) {
   return (
     <main>
       <Component />

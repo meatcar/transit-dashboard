@@ -1,4 +1,5 @@
-import { defineRoute, Handlers, PageProps } from "$fresh/server.ts";
+import { page } from "fresh";
+import { define } from "../utils.ts";
 
 import type { GlobalStopId } from "../transit-api-client/schema/models/GlobalStopId.ts";
 import type { Route } from "../transit-api-client/schema/models/Route.ts";
@@ -21,20 +22,19 @@ import { RouteLabel } from "../components/RouteLabel.tsx";
 import Clock from "../islands/Clock.tsx";
 import Toggle from "../islands/Toggle.tsx";
 
-// identify itineraries by route and direction.
 interface Data {
-  stops: GlobalStopId[]; // stops to show
-  routes: Route[]; // routes serving the stops fetched from the API
-  hidden: HiddenItineraries; // itineraries to hide
+  stops: GlobalStopId[];
+  routes: Route[];
+  hidden: HiddenItineraries;
 }
 
-export const handler: Handlers<Data> = {
-  async GET(req, ctx) {
-    const url = new URL(req.url);
-    const stops = url.searchParams.getAll(FIELD_STOPS) || [];
-    const hidden_its = url.searchParams.getAll(FIELD_ITINERARY) || [];
+export const handler = define.handlers({
+  async GET(ctx) {
+    const url = ctx.url;
+    const stops = url.searchParams.getAll(FIELD_STOPS);
+    const hidden_its = url.searchParams.getAll(FIELD_ITINERARY);
 
-    if (stops.length == 0) {
+    if (stops.length === 0) {
       return new Response(null, {
         status: 307,
         headers: { Location: "/stops" },
@@ -54,13 +54,12 @@ export const handler: Handlers<Data> = {
       }
     }
 
-    return ctx.render({ stops, routes, hidden });
+    return page<Data>({ stops, routes, hidden });
   },
-};
+});
 
-export default function Routes(
-  { url, data: { stops, routes, hidden } }: PageProps<Data>,
-) {
+export default define.page<typeof handler>(({ url, data }) => {
+  const { stops, routes, hidden } = data;
   const hideMode = useSignal(false);
 
   return (
@@ -70,7 +69,9 @@ export default function Routes(
           Nearby Routes
           <Clock />
         </h1>
-        {stops.map((s) => <input type="hidden" name={FIELD_STOPS} value={s} />)}
+        {stops.map((s) => (
+          <input key={s} type="hidden" name={FIELD_STOPS} value={s} />
+        ))}
         <ul>
           {routes.map((route) =>
             route.itineraries?.map((itinerary: Itinerary) => (
@@ -82,7 +83,7 @@ export default function Routes(
       </form>
     </section>
   );
-}
+});
 
 interface ItineraryProps {
   route: Route;
@@ -109,7 +110,9 @@ function ItineraryRow({ data }: { data: ItineraryProps }) {
       </Toggle>
       <RouteLabel route={route} itinerary={itinerary} />
       <div className="schedules">
-        {schedule_items.map((s) => <Schedule schedule={s} />)}
+        {schedule_items.map((s) => (
+          <Schedule key={s.scheduled_departure_time} schedule={s} />
+        ))}
       </div>
     </li>
   );

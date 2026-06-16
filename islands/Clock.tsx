@@ -1,6 +1,6 @@
-import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
+import { useSignal, useSignalEffect } from "@preact/signals";
 import { getHours, getMilliseconds, getMinutes, getSeconds } from "date-fns";
-import { IS_BROWSER } from "$fresh/runtime.ts";
+import { IS_BROWSER } from "fresh/runtime";
 
 export default function Clock() {
   const now = Date.now();
@@ -13,20 +13,22 @@ export default function Clock() {
     m.value = getMinutes(Date.now());
   };
 
-  // next minute schedule update every minute.
-  if (IS_BROWSER) {
-    const oneMinute = 60 * 1000;
-    const nextMinute = oneMinute -
-      (getSeconds(now) * 1000 + getMilliseconds(now));
+  const oneMinute = 60 * 1000;
+  const nextMinute = oneMinute -
+    (getSeconds(now) * 1000 + getMilliseconds(now));
 
-    useSignalEffect(() => {
-      let interval: number;
-      setTimeout(() => {
-        interval = setInterval(tick, oneMinute);
-      }, nextMinute);
-      return () => interval && clearInterval(interval);
-    });
-  }
+  // schedule a tick each minute, starting aligned to the next minute boundary
+  useSignalEffect(() => {
+    if (!IS_BROWSER) return;
+    let interval: number;
+    const timeout = setTimeout(() => {
+      interval = setInterval(tick, oneMinute);
+    }, nextMinute);
+    return () => {
+      clearTimeout(timeout);
+      if (interval) clearInterval(interval);
+    };
+  });
 
   function pad(n: number) {
     return n < 10 ? `0${n}` : n;

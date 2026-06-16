@@ -5,22 +5,27 @@ type child = JSX.Element | string | null;
 type ToggleProps =
   & {
     children: child | child[];
-    control?: boolean;
   }
   & (
     | { show: Signal<boolean>; hide?: never }
     | { show?: never; hide: Signal<boolean> }
   );
 export default function Toggle(props: ToggleProps) {
-  const { children, control } = props;
-  let toggle: Signal<boolean>;
-  if (typeof props.show !== "undefined") toggle = props.show;
-  else {
-    toggle = useSignal(!props.hide.value);
-    useSignalEffect(() => {
-      props.hide.value = !toggle.value;
-    });
-  }
+  const { children } = props;
+
+  // Always call hooks unconditionally; only wire the effect when in "hide" mode.
+  const internalToggle = useSignal(
+    typeof props.hide !== "undefined" ? !props.hide.value : false,
+  );
+  useSignalEffect(() => {
+    if (typeof props.hide !== "undefined") {
+      props.hide.value = !internalToggle.value;
+    }
+  });
+
+  const toggle: Signal<boolean> = typeof props.show !== "undefined"
+    ? props.show
+    : internalToggle;
 
   const onClick = (e: MouseEvent) => {
     if ((e.target as HTMLElement).classList.contains("toggle-control")) {

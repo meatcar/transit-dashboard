@@ -1,34 +1,70 @@
+import { page } from "fresh";
+import { define } from "../utils.ts";
 import Locator from "../islands/Locator.tsx";
 import Slider from "../islands/Slider.tsx";
 import { nearbyStops } from "../transit-api-client/nearbyStops.ts";
 import { FIELD_STOPS } from "../util/stops.ts";
+import type { Stop } from "../transit-api-client/schema/models/Stop.ts";
 
-export default async function Stops(req: Request) {
-  const url = new URL(req.url);
-  const lat = url.searchParams.get("lat") || "";
-  const lon = url.searchParams.get("lon") || "";
+interface Data {
+  gmapsKey: string;
+  lat: string;
+  lon: string;
+  stops: Stop[];
+  max_distance: number | undefined;
+  selectedStops: string[];
+}
+
+export const handler = define.handlers({
+  async GET(ctx) {
+    const gmapsKey = Deno.env.get("GMAPS_API_KEY") ?? "";
+    const url = ctx.url;
+    const lat = url.searchParams.get("lat") ?? "";
+    const lon = url.searchParams.get("lon") ?? "";
+
+    if (!lat || !lon) {
+      return page<Data>({
+        gmapsKey,
+        lat,
+        lon,
+        stops: [],
+        max_distance: undefined,
+        selectedStops: [],
+      });
+    }
+
+    let max_distance: number | undefined;
+    if (url.searchParams.has("max_distance")) {
+      max_distance = Number.parseInt(
+        url.searchParams.get("max_distance") ?? "",
+        10,
+      );
+    }
+    const selectedStops = url.searchParams.getAll(FIELD_STOPS);
+    const { stops } = await nearbyStops(lat, lon, max_distance);
+    return page<Data>({
+      gmapsKey,
+      lat,
+      lon,
+      stops,
+      max_distance,
+      selectedStops,
+    });
+  },
+});
+
+export default define.page<typeof handler>(({ data }) => {
+  const { gmapsKey, lat, lon, stops, max_distance, selectedStops } = data;
+
   if (!lat || !lon) {
     return (
       <section>
         <h2>Nearby Stops</h2>
-        <Locator action="/stops" />
+        <Locator action="/stops" gmapsKey={gmapsKey} />
       </section>
     );
   }
 
-  let max_distance;
-  if (url.searchParams.has("max_distance")) {
-    max_distance = Number.parseInt(
-      url.searchParams.get("max_distance") ?? "",
-      10,
-    );
-  }
-  const selectedStops = url.searchParams.getAll("stops") || [];
-  const { stops } = await nearbyStops(
-    lat,
-    lon,
-    max_distance,
-  );
   return (
     <section className="stops">
       <h1>Nearby Stops</h1>
@@ -62,4 +98,4 @@ export default async function Stops(req: Request) {
       </form>
     </section>
   );
-}
+});

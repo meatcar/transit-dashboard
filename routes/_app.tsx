@@ -1,7 +1,7 @@
-import { AppProps } from "$fresh/server.ts";
+import type { PageProps } from "fresh";
 import { Badge } from "../components/Badge.tsx";
 
-export default function App({ Component }: AppProps) {
+export default function App({ Component }: PageProps) {
   return (
     <html lang="en">
       <head>

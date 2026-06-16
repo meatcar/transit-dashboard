@@ -1,19 +1,17 @@
-import { DB, PreparedQuery } from "sqlite";
+import { DatabaseSync } from "node:sqlite";
 import * as DateFns from "date-fns";
 
 const CACHE_DIRECTORY = Deno.env.get("CACHE_DIRECTORY") ?? "cache";
 const CACHE_DB = `${CACHE_DIRECTORY}/cache.sqlite3`;
 const NO_CACHE = Deno.env.get("NO_CACHE") ?? false;
 
-type CacheURL = string;
-type CacheResponse = string;
-type CacheExpiry = string;
-type CacheRow = [CacheURL, CacheResponse, CacheExpiry];
+type CacheRow = {
+  url: string;
+  response: string;
+  expiry: number;
+};
 
-let db: DB;
-let getCacheQuery: PreparedQuery;
-let setCacheQuery: PreparedQuery;
-let clearCacheQuery: PreparedQuery;
+let db: DatabaseSync | undefined;
 
 export function init() {
   if (NO_CACHE) {
@@ -22,7 +20,7 @@ export function init() {
   }
 
   console.log("cache:", "open db", CACHE_DB);
-  db = new DB(CACHE_DB, {});
+  db = new DatabaseSync(CACHE_DB);
 
   addEventListener("beforeunload", () => {
     close();
@@ -36,38 +34,23 @@ export function init() {
     Deno.exit(128 + 2);
   });
 
-  db.execute(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS fetches (
       url TEXT PRIMARY KEY,
       response TEXT NOT NULL,
       expiry INTEGER NOT NULL
     )
   `);
-
-  getCacheQuery = db.prepareQuery<CacheRow>(
-    "SELECT * FROM fetches WHERE url = ? and expiry > unixepoch('now')",
-  );
-  setCacheQuery = db.prepareQuery(
-    "INSERT OR REPLACE INTO fetches(url, response, expiry) VALUES (?, ?, ?)",
-  );
-  clearCacheQuery = db.prepareQuery("DELETE FROM fetches");
 }
 
 export function close() {
   console.log("cache:", "close db");
-  getCacheQuery.finalize();
-  setCacheQuery.finalize();
-  clearCacheQuery.finalize();
-  db.close(true);
+  db?.close();
+  db = undefined;
 }
 
 /**
  * Return the response from a URL, caching it for `cacheTime` seconds.
- * All responses are no older than `cacheTime` seconds.
- * @param url The URL to fetch
- * @param req The request options
- * @param cacheTime the time in seconds to cache the Response
- * @returns The API Response
  */
 export async function cacheFetch(
   url: URL,
@@ -75,25 +58,29 @@ export async function cacheFetch(
   cacheTime: number,
 ): Promise<Response> {
   const urlStr = url.toString();
-  const [cache] = getCacheQuery.all([urlStr]);
 
-  let res: Response;
-  if (cache) {
-    console.debug(`cache: hit (${urlStr})`);
-    const [_url, response, _expiry] = cache as CacheRow;
-    res = new Response(response, { status: 200 });
-  } else {
-    console.debug(`cache: miss (${urlStr})`);
-    res = await fetch(url, req);
-    if (res.status === 200) {
-      const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;
-      setCacheQuery.execute([urlStr, await res.clone().text(), expiry]);
+  if (db) {
+    const rows = db.prepare(
+      "SELECT * FROM fetches WHERE url = ? AND expiry > unixepoch('now')",
+    ).all(urlStr) as CacheRow[];
+    if (rows[0]) {
+      console.debug(`cache: hit (${urlStr})`);
+      return new Response(rows[0].response, { status: 200 });
     }
+  }
+
+  console.debug(`cache: miss (${urlStr})`);
+  const res = await fetch(url, req);
+  if (res.status === 200 && db) {
+    const expiry = DateFns.getUnixTime(Date.now()) + cacheTime;
+    db.prepare(
+      "INSERT OR REPLACE INTO fetches(url, response, expiry) VALUES (?, ?, ?)",
+    ).run(urlStr, await res.clone().text(), expiry);
   }
 
   return res;
 }
 
 export function cacheClear(): void {
-  clearCacheQuery.execute();
+  db?.prepare("DELETE FROM fetches").run();
 }

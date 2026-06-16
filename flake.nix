@@ -6,10 +6,6 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nix-deno.url = "github:nekowinston/nix-deno";
     nix2container.url = "github:nlewo/nix2container";
-    traefik = {
-      url = "github:traefik/traefik/v3.0.0-rc2";
-      flake = false;
-    };
   };
 
   outputs =
@@ -23,7 +19,6 @@
       ];
       imports = [
         # flake modules
-        ./nix/traefik3.nix
         ./nix/package.nix
         ./nix/docker.nix
       ];

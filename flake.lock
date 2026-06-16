@@ -121,25 +121,7 @@
         "flake-parts": "flake-parts",
         "nix-deno": "nix-deno",
         "nix2container": "nix2container",
-        "nixpkgs": "nixpkgs_3",
-        "traefik": "traefik"
-      }
-    },
-    "traefik": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1710253084,
-        "narHash": "sha256-bjV/ML8NcjvB0mx/NH2OwupGA/QDl4K0hz02/zrIeX0=",
-        "owner": "traefik",
-        "repo": "traefik",
-        "rev": "c06629459d1088823dbf26dc23b0f13f22c27c2b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "traefik",
-        "ref": "v3.0.0-rc2",
-        "repo": "traefik",
-        "type": "github"
+        "nixpkgs": "nixpkgs_3"
       }
     }
   },

@@ -57,7 +57,7 @@
       wait $PID
     '';
 
-    deps = [self'.packages.traefik] ++ (with pkgs; [tailscale jq busybox]);
+    deps = [pkgs.traefik] ++ (with pkgs; [tailscale jq busybox]);
 
     runtimeDeps = with pkgs.dockerTools; [
       caCertificates
