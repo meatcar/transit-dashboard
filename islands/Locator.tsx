@@ -34,7 +34,11 @@ export default function Locator({ action, gmapsKey }: Props) {
   const loading = useSignal(false);
   const lat = useSignal("");
   const lon = useSignal("");
+  const error = useSignal<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  // deno-lint-ignore no-explicit-any
+  const autocompleteRef = useRef<any>(null);
 
   useSignalEffect(() => {
     if (!mapsReady.value) return; // reactive: re-runs when Maps finishes loading
@@ -44,7 +48,8 @@ export default function Locator({ action, gmapsKey }: Props) {
     if (!container || !PlaceAutocompleteElement) return;
 
     // deno-lint-ignore no-explicit-any
-    const el: HTMLElement = new (PlaceAutocompleteElement as any)();
+    const el: any = new (PlaceAutocompleteElement as any)();
+    autocompleteRef.current = el;
 
     const handleSelect = async (e: Event) => {
       // deno-lint-ignore no-explicit-any
@@ -52,14 +57,25 @@ export default function Locator({ action, gmapsKey }: Props) {
       await place.fetchFields({ fields: ["location"] });
       lat.value = place.location.lat().toString();
       lon.value = place.location.lng().toString();
+      error.value = null;
+    };
+
+    // Clear coords when user edits the field so stale coords don't linger.
+    const handleInput = () => {
+      lat.value = "";
+      lon.value = "";
+      error.value = null;
     };
 
     el.addEventListener("gmp-placeselect", handleSelect);
+    el.addEventListener("input", handleInput);
     container.appendChild(el);
 
     return () => {
       el.removeEventListener("gmp-placeselect", handleSelect);
+      el.removeEventListener("input", handleInput);
       container.removeChild(el);
+      autocompleteRef.current = null;
     };
   });
 
@@ -79,10 +95,18 @@ export default function Locator({ action, gmapsKey }: Props) {
 
   async function submit(e: Event) {
     e.preventDefault();
-    if (lat.value == "" || lon.value == "") {
-      await getLocation();
+    if (lat.value && lon.value) {
+      formRef.current?.submit();
+      return;
     }
-    (e.target as HTMLButtonElement).form?.submit();
+    // If the autocomplete has text but no place was selected, prompt the user.
+    const typed = autocompleteRef.current?.value;
+    if (typed) {
+      error.value = "Select an address from the suggestions";
+      return;
+    }
+    await getLocation();
+    formRef.current?.submit();
   }
 
   function onInput(s: Signal): JSX.GenericEventHandler<HTMLInputElement> {
@@ -90,23 +114,24 @@ export default function Locator({ action, gmapsKey }: Props) {
   }
 
   return (
-    <form action={action} method="GET">
+    <form ref={formRef} action={action} method="GET" onSubmit={submit}>
       <Head>
         <script
           key="gmaps"
           async
           src={`https://maps.googleapis.com/maps/api/js?key=${gmapsKey}&libraries=places&callback=initMap&loading=async`}
         />
-        <script>{"function initMap() { console.log('gmaps init'); }"}</script>
+        <script>{"window.initMap=function(){};"}</script>
       </Head>
       <input type="hidden" name="lat" value={lat} onInput={onInput(lat)} />
       <input type="hidden" name="lon" value={lon} onInput={onInput(lon)} />
-      <Button type="submit" onClick={submit} disabled={loading}>
+      <Button type="submit" disabled={loading}>
         📍Use my current location
       </Button>
       <div className="hr">OR</div>
       <div ref={containerRef} />
-      <Button type="submit" onClick={submit} disabled={loading}>
+      {error.value && <span className="error">{error.value}</span>}
+      <Button type="submit" disabled={loading}>
         🔎 Search
       </Button>
       <div>
