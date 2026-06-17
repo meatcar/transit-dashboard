@@ -83,7 +83,7 @@ export default define.page<typeof handler>(({ data }) => {
         <button type="submit" formaction="/routes">🔎 Find routes</button>
         <ul>
           {stops.map((stop) => (
-            <li className="stop">
+            <li key={stop.global_stop_id} className="stop">
               <input
                 type="checkbox"
                 name={FIELD_STOPS}

@@ -23,12 +23,11 @@ export default function Locator({ action, gmapsKey }: Props) {
   const lon = useSignal("");
   const addressRef = useRef<HTMLInputElement>(null);
 
-  // deno-lint-ignore no-explicit-any
-  let autocomplete: any;
   useSignalEffect(() => {
     const { Autocomplete } = globalThis.google?.maps?.places || {};
 
-    autocomplete = new Autocomplete(
+    // deno-lint-ignore no-explicit-any
+    const autocomplete: any = new Autocomplete(
       addressRef.current,
       {
         fields: ["address_components", "geometry", "name"],
@@ -65,7 +64,7 @@ export default function Locator({ action, gmapsKey }: Props) {
     if (lat.value == "" || lon.value == "") {
       await getLocation();
     }
-    (e.target as HTMLFormElement).form.submit();
+    (e.target as HTMLButtonElement).form?.submit();
   }
 
   function onInput(s: Signal): JSX.GenericEventHandler<HTMLInputElement> {
