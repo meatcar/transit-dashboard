@@ -76,11 +76,20 @@ export function init(injectedDb?: DatabaseSync): void {
     });
   }
 
+  // Recreate fetches if it has the old schema (no hard_expiry column).
+  const cols = db.prepare(
+    "SELECT name FROM pragma_table_info('fetches')",
+  ).all() as { name: string }[];
+  const hasHardExpiry = cols.some((c) => c.name === "hard_expiry");
+  if (!hasHardExpiry) {
+    db.exec("DROP TABLE IF EXISTS fetches;");
+  }
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS fetches (
-      url        TEXT    PRIMARY KEY,
-      response   TEXT    NOT NULL,
-      fetched_at INTEGER NOT NULL,
+      url         TEXT    PRIMARY KEY,
+      response    TEXT    NOT NULL,
+      fetched_at  INTEGER NOT NULL,
       soft_expiry INTEGER NOT NULL,
       hard_expiry INTEGER NOT NULL
     );
