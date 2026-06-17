@@ -21,27 +21,31 @@ export default function Locator({ action, gmapsKey }: Props) {
   const loading = useSignal(false);
   const lat = useSignal("");
   const lon = useSignal("");
-  const addressRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useSignalEffect(() => {
-    const { Autocomplete } = globalThis.google?.maps?.places || {};
+    const container = containerRef.current;
+    const PlaceAutocompleteElement = globalThis.google?.maps?.places
+      ?.PlaceAutocompleteElement;
+    if (!container || !PlaceAutocompleteElement) return;
 
     // deno-lint-ignore no-explicit-any
-    const autocomplete: any = new Autocomplete(
-      addressRef.current,
-      {
-        fields: ["address_components", "geometry", "name"],
-        types: ["address"],
-      },
-    );
+    const el: HTMLElement = new (PlaceAutocompleteElement as any)();
 
-    autocomplete.addListener("place_changed", () => {
-      const place = autocomplete.getPlace();
-      lat.value = place.geometry?.location.lat();
-      lon.value = place.geometry?.location.lng();
-    });
+    const handleSelect = async (e: Event) => {
+      // deno-lint-ignore no-explicit-any
+      const place = (e as any).place;
+      await place.fetchFields({ fields: ["location"] });
+      lat.value = place.location.lat().toString();
+      lon.value = place.location.lng().toString();
+    };
+
+    el.addEventListener("gmp-placeselect", handleSelect);
+    container.appendChild(el);
+
     return () => {
-      autocomplete.removeListener("place_changed");
+      el.removeEventListener("gmp-placeselect", handleSelect);
+      container.removeChild(el);
     };
   });
 
@@ -76,8 +80,8 @@ export default function Locator({ action, gmapsKey }: Props) {
       <Head>
         <script
           key="gmaps"
-          defer
-          src={`https://maps.googleapis.com/maps/api/js?key=${gmapsKey}&libraries=places&callback=initMap`}
+          async
+          src={`https://maps.googleapis.com/maps/api/js?key=${gmapsKey}&libraries=places&callback=initMap&loading=async`}
         />
         <script>{"function initMap() { console.log('gmaps init'); }"}</script>
       </Head>
@@ -87,14 +91,7 @@ export default function Locator({ action, gmapsKey }: Props) {
         📍Use my current location
       </Button>
       <div className="hr">OR</div>
-      <div>
-        <input
-          type="text"
-          name="address"
-          placeholder="Find an address"
-          ref={addressRef}
-        />
-      </div>
+      <div ref={containerRef} />
       <Button type="submit" onClick={submit} disabled={loading}>
         🔎 Search
       </Button>
