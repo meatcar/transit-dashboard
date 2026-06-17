@@ -1,5 +1,10 @@
 import { Head } from "fresh/runtime";
-import { type Signal, useSignal, useSignalEffect } from "@preact/signals";
+import {
+  type Signal,
+  signal,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { JSX } from "preact/jsx-runtime";
 import { useRef } from "preact/hooks";
@@ -15,7 +20,15 @@ declare global {
   var google: any; // google API object
 }
 
-globalThis.initMap = () => {};
+// Module-level signal so the effect re-runs when Maps finishes loading.
+const mapsReady = signal(false);
+globalThis.initMap = () => {
+  mapsReady.value = true;
+};
+// Handle the race: if Maps loaded before island hydrated, set immediately.
+if (globalThis.google?.maps?.places?.PlaceAutocompleteElement) {
+  mapsReady.value = true;
+}
 
 export default function Locator({ action, gmapsKey }: Props) {
   const loading = useSignal(false);
@@ -24,6 +37,7 @@ export default function Locator({ action, gmapsKey }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useSignalEffect(() => {
+    if (!mapsReady.value) return; // reactive: re-runs when Maps finishes loading
     const container = containerRef.current;
     const PlaceAutocompleteElement = globalThis.google?.maps?.places
       ?.PlaceAutocompleteElement;
