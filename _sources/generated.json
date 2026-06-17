@@ -7,11 +7,11 @@
         "passthru": null,
         "pinned": false,
         "src": {
-            "sha256": "sha256-O925J8wKbJYxryrdp3FlSIh1Gy9j34fvRstfTaZQQ/c=",
+            "sha256": "sha256-Hux690/1cfedofIayWyFW1SI4GI3ndCEoAFOU3sY1tU=",
             "type": "tarball",
-            "url": "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.19.11.tgz"
+            "url": "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.27.7.tgz"
         },
-        "version": "0.19.11"
+        "version": "0.27.7"
     },
     "esbuild-aarch64-linux": {
         "cargoLocks": null,
@@ -21,11 +21,11 @@
         "passthru": null,
         "pinned": false,
         "src": {
-            "sha256": "sha256-LNm7VVc31xXE10aorOB0i8NK3J3Z82uNLOBj3JjX0iw=",
+            "sha256": "sha256-Kpk5KQ4d1oUoMi4nVrlp4G5kKVpLGCNu27KLpXWuRuk=",
             "type": "tarball",
-            "url": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.19.11.tgz"
+            "url": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.27.7.tgz"
         },
-        "version": "0.19.11"
+        "version": "0.27.7"
     },
     "esbuild-x86_64-darwin": {
         "cargoLocks": null,
@@ -35,11 +35,11 @@
         "passthru": null,
         "pinned": false,
         "src": {
-            "sha256": "sha256-tOoRaAFIuYVhKVGVW8rG+k1RbPWQ23bdjv9kqWAq4rw=",
+            "sha256": "sha256-IOgqira+BhGyeCNtRT1LNS3qkWF4pkA4rUwJaIUfqAc=",
             "type": "tarball",
-            "url": "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.19.11.tgz"
+            "url": "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.27.7.tgz"
         },
-        "version": "0.19.11"
+        "version": "0.27.7"
     },
     "esbuild-x86_64-linux": {
         "cargoLocks": null,
@@ -49,10 +49,10 @@
         "passthru": null,
         "pinned": false,
         "src": {
-            "sha256": "sha256-LDM8pA+PQTBm2U8ZznlIof8fsJ5ievUUZwuYWCCa41A=",
+            "sha256": "sha256-/JIpNDECwFtmQNCsHDDRzOR6V7I629CfRPMtxrUisfE=",
             "type": "tarball",
-            "url": "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.19.11.tgz"
+            "url": "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.27.7.tgz"
         },
-        "version": "0.19.11"
+        "version": "0.27.7"
     }
 }
