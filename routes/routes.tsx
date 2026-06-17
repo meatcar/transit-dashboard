@@ -4,6 +4,7 @@ import { define } from "../utils.ts";
 import type { GlobalStopId } from "../transit-api-client/schema/models/GlobalStopId.ts";
 import type { Route } from "../transit-api-client/schema/models/Route.ts";
 import type { Itinerary } from "../transit-api-client/schema/models/Itinerary.ts";
+import type { Freshness } from "../transit-api-client/cache.ts";
 
 import { stopDepartures } from "../transit-api-client/stopDepartures.ts";
 
@@ -16,15 +17,23 @@ import {
   makeItineraryId,
 } from "../util/itineraries.ts";
 
+import { FreshnessNote } from "../components/Freshness.tsx";
 import { Schedule } from "../components/Schedule.tsx";
 import { RouteLabel } from "../components/RouteLabel.tsx";
 
 import Clock from "../islands/Clock.tsx";
 import Toggle from "../islands/Toggle.tsx";
 
+interface StopData {
+  id: GlobalStopId;
+  routes: Route[];
+  state: Freshness;
+  ageSeconds: number | null;
+}
+
 interface Data {
   stops: GlobalStopId[];
-  routes: Route[];
+  stopData: StopData[];
   hidden: HiddenItineraries;
 }
 
@@ -46,22 +55,28 @@ export const handler = define.handlers({
       hidden[id as ItineraryId] = true;
     }
 
-    const routes = [];
+    const stopData: StopData[] = [];
     for (const id of stops) {
-      const { route_departures } = await stopDepartures(id as GlobalStopId);
-      for (const route of route_departures) {
-        routes.push(route);
-      }
+      const { route_departures, state, ageSeconds } = await stopDepartures(
+        id as GlobalStopId,
+      );
+      stopData.push({
+        id: id as GlobalStopId,
+        routes: route_departures,
+        state,
+        ageSeconds,
+      });
     }
 
-    return page<Data>({ stops, routes, hidden });
+    return page<Data>({ stops, stopData, hidden });
   },
 });
 
 export default define.page<typeof handler>(({ url, data }) => {
-  const { stops, routes, hidden } = data;
+  const { stops, stopData, hidden } = data;
   const hideMode = useSignal(false);
 
+  // Flatten routes across stops for rendering, carrying freshness per-stop.
   return (
     <section>
       <form className="routes">
@@ -73,10 +88,28 @@ export default define.page<typeof handler>(({ url, data }) => {
           <input key={s} type="hidden" name={FIELD_STOPS} value={s} />
         ))}
         <ul>
-          {routes.map((route) =>
-            route.itineraries?.map((itinerary: Itinerary) => (
-              <ItineraryRow data={{ route, itinerary, hideMode, hidden }} />
-            ))
+          {stopData.map(({ id, routes, state, ageSeconds }) =>
+            routes.length === 0
+              ? (
+                <li key={id} className="itinerary unavailable">
+                  <FreshnessNote state={state} ageSeconds={ageSeconds} />
+                </li>
+              )
+              : routes.map((route) =>
+                route.itineraries?.map((itinerary: Itinerary) => (
+                  <ItineraryRow
+                    key={`${id}-${route.global_route_id}-${itinerary.direction_id}`}
+                    data={{
+                      route,
+                      itinerary,
+                      hideMode,
+                      hidden,
+                      state,
+                      ageSeconds,
+                    }}
+                  />
+                ))
+              )
           )}
         </ul>
         <ItineraryButtons data={{ url, hideMode, hidden }} />
@@ -90,9 +123,11 @@ interface ItineraryProps {
   itinerary: Itinerary;
   hidden: HiddenItineraries;
   hideMode: Signal<boolean>;
+  state: Freshness;
+  ageSeconds: number | null;
 }
 function ItineraryRow({ data }: { data: ItineraryProps }) {
-  const { route, itinerary, hidden, hideMode } = data;
+  const { route, itinerary, hidden, hideMode, state, ageSeconds } = data;
   const { schedule_items } = itinerary;
   const id = makeItineraryId(route, itinerary);
 
@@ -109,6 +144,7 @@ function ItineraryRow({ data }: { data: ItineraryProps }) {
         {" "}
       </Toggle>
       <RouteLabel route={route} itinerary={itinerary} />
+      <FreshnessNote state={state} ageSeconds={ageSeconds} />
       <div className="schedules">
         {schedule_items.map((s) => (
           <Schedule key={s.scheduled_departure_time} schedule={s} />
@@ -134,7 +170,7 @@ function ItineraryButtons({ data }: { data: ItineraryButtons }) {
       <hr />
       <Toggle hide={hideMode}>
         {hidden_list.map((id) => (
-          <input type="hidden" name={FIELD_ITINERARY} value={id} />
+          <input key={id} type="hidden" name={FIELD_ITINERARY} value={id} />
         ))}
       </Toggle>
       <Toggle show={hideMode}>

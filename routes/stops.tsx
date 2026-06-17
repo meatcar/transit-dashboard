@@ -5,6 +5,8 @@ import Slider from "../islands/Slider.tsx";
 import { nearbyStops } from "../transit-api-client/nearbyStops.ts";
 import { FIELD_STOPS } from "../util/stops.ts";
 import type { Stop } from "../transit-api-client/schema/models/Stop.ts";
+import type { Freshness } from "../transit-api-client/cache.ts";
+import { FreshnessNote } from "../components/Freshness.tsx";
 
 interface Data {
   gmapsKey: string;
@@ -13,6 +15,8 @@ interface Data {
   stops: Stop[];
   max_distance: number | undefined;
   selectedStops: string[];
+  state: Freshness;
+  ageSeconds: number | null;
 }
 
 export const handler = define.handlers({
@@ -30,6 +34,8 @@ export const handler = define.handlers({
         stops: [],
         max_distance: undefined,
         selectedStops: [],
+        state: "fresh",
+        ageSeconds: null,
       });
     }
 
@@ -41,7 +47,11 @@ export const handler = define.handlers({
       );
     }
     const selectedStops = url.searchParams.getAll(FIELD_STOPS);
-    const { stops } = await nearbyStops(lat, lon, max_distance);
+    const { stops, state, ageSeconds } = await nearbyStops(
+      lat,
+      lon,
+      max_distance,
+    );
     return page<Data>({
       gmapsKey,
       lat,
@@ -49,12 +59,23 @@ export const handler = define.handlers({
       stops,
       max_distance,
       selectedStops,
+      state,
+      ageSeconds,
     });
   },
 });
 
 export default define.page<typeof handler>(({ data }) => {
-  const { gmapsKey, lat, lon, stops, max_distance, selectedStops } = data;
+  const {
+    gmapsKey,
+    lat,
+    lon,
+    stops,
+    max_distance,
+    selectedStops,
+    state,
+    ageSeconds,
+  } = data;
 
   if (!lat || !lon) {
     return (
@@ -68,6 +89,7 @@ export default define.page<typeof handler>(({ data }) => {
   return (
     <section className="stops">
       <h1>Nearby Stops</h1>
+      <FreshnessNote state={state} ageSeconds={ageSeconds} />
       <form>
         <input type="hidden" name="lat" value={lat} />
         <input type="hidden" name="lon" value={lon} />
