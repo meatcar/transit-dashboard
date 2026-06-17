@@ -3,4 +3,9 @@ import { fresh } from "@fresh/plugin-vite";
 
 export default defineConfig({
   plugins: [fresh()],
+  server: {
+    watch: {
+      ignored: ["**/.jj/**"],
+    },
+  },
 });
