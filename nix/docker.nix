@@ -49,7 +49,7 @@
       ensure tailscaled --statedir "$TS_STATE_DIR"&
       ensure tailscale up --authkey="$(cat "$TS_AUTHKEY__FILE" || echo "$TS_AUTHKEY")"
       export TS_DOMAIN_NAME=$(tailscale status --json | jq -r .Self.DNSName[:-1])
-      ensure /app/main.ts &
+      ensure ${app}/bin/${name} &
       # mkdir -p /app/public
       # ensure static-web-server -p 8000 &
       PID=$!
@@ -77,7 +77,7 @@
           "PATH=${lib.strings.makeSearchPath "bin" (["/"] ++ deps)}"
           "TS_AUTHKEY=CHANGEME"
           "TS_STATE_DIR=/var/lib/tailscale"
-          "DENO_DIR=/app/deno_cache"
+          "DENO_DIR=${app}/app/deno_cache"
           "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
         ];
         WorkingDir = "/app";

@@ -1,7 +1,7 @@
 {
   "lock": true,
   "tasks": {
-    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    "check": "deno fmt --check && deno lint && deno check main.ts utils.ts vite.config.ts 'routes/**/*.tsx' 'islands/**/*.tsx' 'components/**/*.tsx' 'transit-api-client/**/*.ts' 'util/**/*.ts'",
     "dev": "vite",
     "build": "vite build",
     "preview": "deno serve -A --env-file=.env _fresh/server.js",
@@ -21,8 +21,8 @@
     ]
   },
   "exclude": [
-    "**/_fresh/*",
-    "**/node_modules/*",
+    "**/_fresh/**",
+    "**/node_modules/**",
     "_sources/",
     "transit-api-client/schema/"
   ],

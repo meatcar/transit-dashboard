@@ -10,11 +10,9 @@ interface Props {
 }
 
 declare global {
-  interface Window {
-    initMap: () => void; // google API callback
-    // deno-lint-ignore no-explicit-any
-    google: any; // google API object
-  }
+  var initMap: () => void; // google API callback
+  // deno-lint-ignore no-explicit-any
+  var google: any; // google API object
 }
 
 globalThis.initMap = () => {};

@@ -15,7 +15,7 @@
       esbuild = nvfetcher."esbuild-${system}";
       deno = pkgs.deno;
     in
-      pkgs.denoPlatform.mkDenoDerivation rec {
+      pkgs.denoPlatform.mkDenoDerivation {
         # loosely based on mkDenoPackage
         inherit name;
         version = "0.1.0";
@@ -24,15 +24,12 @@
 
         src = ./..;
 
+        # Fresh 2 uses Vite which calls esbuild internally; supply the
+        # pre-fetched native binary so the sandbox build doesn't need network.
         env.ESBUILD_BINARY_PATH = "${esbuild.src}/bin/esbuild";
 
+        # Unused by the overridden installPhase but required by mkDenoDerivation.
         binaryName = "main.ts";
-
-        runtimeArgs = pkgs.denoPlatform.lib.generateFlags {
-          entryPoint = "";
-          permissions.allow.all = true;
-          additionalDenoArgs = "--cached-only";
-        };
 
         buildPhase = ''
           mkdir -p cache
@@ -40,11 +37,16 @@
         '';
 
         installPhase = ''
-          mkdir -p $out/app
+          mkdir -p $out/app $out/bin
+          # Copy source tree (includes _fresh/ built by vite in buildPhase).
           cp -r ./ $out/app/
+          # Copy the Deno module cache populated by mkDenoDerivation.
           cp -r "$TMPDIR"/deno_cache $out/app/
-          sed -i -e "1i#!/usr/bin/env -S ${deno}/bin/deno run ${runtimeArgs}" $out/app/${binaryName}
-          chmod +x $out/app/${binaryName}
+
+          # Wrapper script: run the pre-built Fresh 2 server artifact.
+          printf '#!/bin/sh\nDENO_DIR=%s/app/deno_cache exec ${deno}/bin/deno serve -A --cached-only %s/app/_fresh/server.js "$@"\n' \
+            "$out" "$out" > $out/bin/${name}
+          chmod +x $out/bin/${name}
         '';
       };
   };
