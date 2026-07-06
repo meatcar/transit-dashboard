@@ -24,3 +24,8 @@ _fresh/
 # databases
 cache/
 /result
+
+# Amp orb scratch/log files; keep project plugins tracked.
+.amp/*
+!.amp/plugins/
+!.amp/plugins/**

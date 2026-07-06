@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+ROOT="$(pwd)"
+LOG_DIR="$ROOT/.amp/in"
+LOG_FILE="$LOG_DIR/checks.log"
+
+mkdir -p "$LOG_DIR"
+
+export DENO_INSTALL="${DENO_INSTALL:-$HOME/.deno}"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+start="$(date -Is)"
+{
+  printf '[%s] deno task check\n' "$start"
+  deno task check
+} >"$LOG_FILE" 2>&1
+status=$?
+
+if [ "$status" -eq 0 ]; then
+  printf 'OK deno:check log=.amp/in/checks.log\n'
+else
+  printf 'FAIL deno:check exit=%s log=.amp/in/checks.log\n' "$status"
+fi
+
+exit "$status"
