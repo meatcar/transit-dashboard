@@ -138,7 +138,9 @@ nav .logo {
   display: none !important;
 }
 
-button, .button, input[type="text"] {
+button,
+.button,
+input[type="text"] {
   color: black;
   text-decoration: none;
   font-family: inherit;
@@ -171,7 +173,8 @@ input[type="text"] {
   displaiy: block;
   width: 100%;
   text-align: center;
-  &::before, &::after {
+  &::before,
+  &::after {
     content: "—";
     margin: 0 1em;
   }

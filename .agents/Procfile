@@ -1,0 +1,2 @@
+web: bash -lc 'export DENO_INSTALL="${DENO_INSTALL:-$HOME/.deno}"; export PATH="$DENO_INSTALL/bin:$PATH"; deno task dev --host 0.0.0.0 --port "${PORT:-5173}"'
+check: bash -lc 'export DENO_INSTALL="${DENO_INSTALL:-$HOME/.deno}"; export PATH="$DENO_INSTALL/bin:$PATH"; deno task check'

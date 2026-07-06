@@ -20,7 +20,7 @@ export default function Clock() {
   // schedule a tick each minute, starting aligned to the next minute boundary
   useSignalEffect(() => {
     if (!IS_BROWSER) return;
-    let interval: number;
+    let interval: ReturnType<typeof setInterval> | undefined;
     const timeout = setTimeout(() => {
       interval = setInterval(tick, oneMinute);
     }, nextMinute);

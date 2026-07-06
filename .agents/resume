@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(pwd)"
+PORT="${PORT:-5173}"
+LOG_DIR="$ROOT/.amp/in"
+LOG_FILE="$LOG_DIR/resume.log"
+
+mkdir -p "$LOG_DIR"
+
+log() {
+  printf '[%s] %s\n' "$(date -Is)" "$*" >>"$LOG_FILE"
+}
+
+if curl -fsS "http://127.0.0.1:$PORT/" >/dev/null 2>&1; then
+  log "dev server already healthy on port $PORT"
+  exit 0
+fi
+
+if ! command -v tmux >/dev/null 2>&1; then
+  log "tmux not found; cannot restart dev server"
+  exit 0
+fi
+
+if ! command -v deno >/dev/null 2>&1 && [ ! -x "$HOME/.deno/bin/deno" ]; then
+  log "deno not found; run .agents/setup before starting dev server"
+  exit 0
+fi
+
+tmux has-session -t dev 2>/dev/null || tmux new-session -d -s dev -c "$ROOT"
+
+window_name="transit-dashboard"
+if tmux list-windows -t dev -F '#{window_name}' | grep -Fxq "$window_name"; then
+  log "dev server not healthy, but tmux window '$window_name' already exists; leaving it for inspection"
+  exit 0
+fi
+
+window_id="$(tmux new-window -P -F '#{window_id}' -t dev -c "$ROOT" -n "$window_name")"
+server_cmd="export PORT=$(printf '%q' "$PORT"); export DENO_INSTALL=\"\${DENO_INSTALL:-\$HOME/.deno}\"; export PATH=\"\$DENO_INSTALL/bin:\$PATH\"; deno task dev --host 0.0.0.0 --port \"\$PORT\""
+tmux send-keys -t "$window_id" "$server_cmd" C-m
+
+log "started dev server in tmux window $window_id on port $PORT"
