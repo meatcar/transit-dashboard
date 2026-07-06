@@ -85,10 +85,10 @@ export class PublicTransportService {
      */
     public static stopDepartures(
         globalStopId: string,
-        time: number = The current time when the request was issued,
+        time?: number,
         removeCancelled: boolean = false,
         acceptLanguage?: string,
-        shouldUpdateRealtime: boolean = "true",
+        shouldUpdateRealtime: boolean = true,
     ): CancelablePromise<{
         route_departures?: Array<Route>;
     }> {
