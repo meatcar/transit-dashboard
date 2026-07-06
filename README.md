@@ -23,10 +23,23 @@ Transit API. It is in no way affiliated with the Transit App/team.
 
    ```
    nix develop
-   deno task start
+   deno task dev
    ```
 
    This will watch the project directory and restart as necessary.
+
+### Amp orbs
+
+This repo includes Amp orb configuration under `.agents/`:
+
+- `.agents/setup` installs Deno if needed and installs locked dependencies.
+- `.agents/resume` restarts the dev server on orb wake-up if it is not already
+  healthy.
+- `.agents/Procfile` starts the Vite/Fresh dev server on `0.0.0.0:5173`.
+- `.agents/portal` documents the app port for sharing from an orb.
+
+Copy `.env.example` to `.env` and fill in real API keys before using live
+Transit or Google Maps features.
 
 ## Deployment
 

@@ -1,0 +1,9 @@
+Development server: port 5173
+
+Start command: deno task dev --host 0.0.0.0 --port 5173
+
+When sharing the running app from an Amp orb, run:
+
+  amp orb portal 5173
+
+Use the exact URL returned by that command.

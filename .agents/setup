@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DENO_INSTALL="${DENO_INSTALL:-$HOME/.deno}"
+export DENO_INSTALL
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+if ! command -v deno >/dev/null 2>&1; then
+  curl -fsSL https://deno.land/install.sh | sh -s -- -y
+fi
+
+deno --version
+deno install --no-check --frozen
